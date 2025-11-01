@@ -226,7 +226,8 @@ class HealthStatusTest {
         HealthStatus healthyStatus = new HealthStatus(
             dbHealth,
             kafkaHealth,
-            engineHealth
+            engineHealth,
+            Instant.now()
         );
 
         // Given - One component DEGRADED
@@ -241,7 +242,8 @@ class HealthStatusTest {
         HealthStatus degradedStatus = new HealthStatus(
             dbHealth,
             degradedKafka,
-            engineHealth
+            engineHealth,
+            Instant.now()
         );
 
         // When / Then
@@ -400,7 +402,8 @@ class HealthStatusTest {
         HealthStatus healthStatus = new HealthStatus(
             dbDown,
             kafkaDegraded,
-            engineUp
+            engineUp,
+            Instant.now()
         );
 
         // When / Then - DOWN should take priority

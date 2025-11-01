@@ -36,7 +36,8 @@ class ConfigurationAggregateTest {
             "testdb",
             "testuser",
             "testpass",
-            null
+            null,
+            java.util.Map.of()
         );
 
         testKafkaConfig = new KafkaConfig(
@@ -323,7 +324,8 @@ class ConfigurationAggregateTest {
             "testdb",
             "testuser",
             "testpass",
-            null
+            null,
+            java.util.Map.of()
         );
 
         ConfigurationAggregate config1 = new ConfigurationAggregate(

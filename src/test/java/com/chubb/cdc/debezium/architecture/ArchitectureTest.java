@@ -96,7 +96,7 @@ class ArchitectureTest {
     void infrastructureLayerShouldNotDependOnPresentation() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("..infrastructure..")
-                .should().dependOnClassesThat().resideInPackage("..presentation..");
+                .should().dependOnClassesThat().resideInAnyPackage("..presentation..");
 
         rule.check(classes);
     }

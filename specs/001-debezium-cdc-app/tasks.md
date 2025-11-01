@@ -28,21 +28,21 @@ Single project structure (Clean Architecture with DDD):
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Maven project structure with Spring Boot 3.3.5 parent in pom.xml
-- [ ] T002 Add core dependencies to pom.xml (Spring Boot starters, Debezium Embedded, Spring Kafka, Lombok, validation)
-- [ ] T003 Add testing dependencies to pom.xml (JUnit 5, AssertJ, Mockito, ArchUnit, Testcontainers)
-- [ ] T004 [P] Configure Maven profiles (dev, test, prod) in pom.xml
-- [ ] T005 [P] Create Clean Architecture directory structure (domain, application, infrastructure, presentation layers)
-- [ ] T006 [P] Configure logback-spring.xml for structured JSON logging with correlation IDs
-- [ ] T007 [P] Create application.yml with base Spring Boot configuration (server port, profiles)
-- [ ] T008 [P] Create application-dev.yml for local development (PostgreSQL localhost:5432, Kafka localhost:9092)
-- [ ] T009 [P] Create application-test.yml for testing (Testcontainers configuration)
-- [ ] T010 [P] Create application-prod.yml for production (externalized config, SSL settings)
-- [ ] T011 [P] Create Dockerfile with multi-stage build (Maven build + eclipse-temurin:21-jre-alpine runtime)
-- [ ] T012 [P] Create docker-compose.yml for local dev (PostgreSQL, Kafka, Zookeeper services)
-- [ ] T013 [P] Create .env.example with template environment variables
-- [ ] T014 [P] Create README.md with project overview and setup instructions
-- [ ] T015 Create ArchUnit test in src/test/java/com/chubb/cdc/debezium/architecture/ArchitectureTest.java to enforce layer dependencies
+- [X] T001 Create Maven project structure with Spring Boot 3.3.5 parent in pom.xml
+- [X] T002 Add core dependencies to pom.xml (Spring Boot starters, Debezium Embedded, Spring Kafka, Lombok, validation)
+- [X] T003 Add testing dependencies to pom.xml (JUnit 5, AssertJ, Mockito, ArchUnit, Testcontainers)
+- [X] T004 [P] Configure Maven profiles (dev, test, prod) in pom.xml
+- [X] T005 [P] Create Clean Architecture directory structure (domain, application, infrastructure, presentation layers)
+- [X] T006 [P] Configure logback-spring.xml for structured JSON logging with correlation IDs
+- [X] T007 [P] Create application.yml with base Spring Boot configuration (server port, profiles)
+- [X] T008 [P] Create application-dev.yml for local development (PostgreSQL localhost:5432, Kafka localhost:9092)
+- [X] T009 [P] Create application-test.yml for testing (Testcontainers configuration)
+- [X] T010 [P] Create application-prod.yml for production (externalized config, SSL settings)
+- [X] T011 [P] Create Dockerfile with multi-stage build (Maven build + eclipse-temurin:21-jre-alpine runtime)
+- [X] T012 [P] Create docker-compose.yml for local dev (PostgreSQL, Kafka, Zookeeper services)
+- [X] T013 [P] Create .env.example with template environment variables
+- [X] T014 [P] Create README.md with project overview and setup instructions
+- [X] T015 Create ArchUnit test in src/test/java/com/chubb/cdc/debezium/architecture/ArchitectureTest.java to enforce layer dependencies
 
 **Checkpoint**: Project structure complete, build runs successfully
 
@@ -56,67 +56,67 @@ Single project structure (Clean Architecture with DDD):
 
 ### Domain Model (Framework-Independent)
 
-- [ ] T016 [P] Create OperationType enum in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/OperationType.java
-- [ ] T017 [P] Create TableIdentifier record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/TableIdentifier.java
-- [ ] T018 [P] Create CdcPosition record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/CdcPosition.java with Comparable implementation
-- [ ] T019 [P] Create RowData record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/RowData.java
-- [ ] T020 Create ChangeEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/ChangeEvent.java (depends on T016-T019)
-- [ ] T021 [P] Create DatabaseType enum in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/DatabaseType.java
-- [ ] T022 [P] Create CompositeUniqueKey record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/CompositeUniqueKey.java
-- [ ] T023 [P] Create TableConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/TableConfig.java
-- [ ] T024 [P] Create SslConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/SslConfig.java
-- [ ] T025 Create SourceDatabaseConfig entity in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/SourceDatabaseConfig.java (depends on T021, T024)
-- [ ] T026 [P] Create KafkaConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/KafkaConfig.java
-- [ ] T027 Create ConfigurationAggregate in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/ConfigurationAggregate.java (depends on T023, T025, T026)
-- [ ] T028 [P] Create HealthState enum in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/HealthState.java
-- [ ] T029 [P] Create DatabaseHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/DatabaseHealthCheck.java
-- [ ] T030 [P] Create KafkaHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/KafkaHealthCheck.java
-- [ ] T031 [P] Create CdcEngineHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/CdcEngineHealthCheck.java
-- [ ] T032 Create HealthStatus entity in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/HealthStatus.java (depends on T028-T031)
-- [ ] T033 [P] Create CaptureMetrics record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/CaptureMetrics.java
-- [ ] T034 [P] Create TableMetrics record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/TableMetrics.java
+- [X] T016 [P] Create OperationType enum in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/OperationType.java
+- [X] T017 [P] Create TableIdentifier record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/TableIdentifier.java
+- [X] T018 [P] Create CdcPosition record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/CdcPosition.java with Comparable implementation
+- [X] T019 [P] Create RowData record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/RowData.java
+- [X] T020 Create ChangeEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/model/ChangeEvent.java (depends on T016-T019)
+- [X] T021 [P] Create DatabaseType enum in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/DatabaseType.java
+- [X] T022 [P] Create CompositeUniqueKey record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/CompositeUniqueKey.java
+- [X] T023 [P] Create TableConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/TableConfig.java
+- [X] T024 [P] Create SslConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/SslConfig.java
+- [X] T025 Create SourceDatabaseConfig entity in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/SourceDatabaseConfig.java (depends on T021, T024)
+- [X] T026 [P] Create KafkaConfig record in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/KafkaConfig.java
+- [X] T027 Create ConfigurationAggregate in src/main/java/com/chubb/cdc/debezium/domain/configuration/model/ConfigurationAggregate.java (depends on T023, T025, T026)
+- [X] T028 [P] Create HealthState enum in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/HealthState.java
+- [X] T029 [P] Create DatabaseHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/DatabaseHealthCheck.java
+- [X] T030 [P] Create KafkaHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/KafkaHealthCheck.java
+- [X] T031 [P] Create CdcEngineHealthCheck record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/CdcEngineHealthCheck.java
+- [X] T032 Create HealthStatus entity in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/HealthStatus.java (depends on T028-T031)
+- [X] T033 [P] Create CaptureMetrics record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/CaptureMetrics.java
+- [X] T034 [P] Create TableMetrics record in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/model/TableMetrics.java
 
 ### Domain Events
 
-- [ ] T035 [P] Create CaptureStartedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/CaptureStartedEvent.java
-- [ ] T036 [P] Create CaptureStoppedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/CaptureStoppedEvent.java
-- [ ] T037 [P] Create SchemaChangedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/SchemaChangedEvent.java
-- [ ] T038 [P] Create ConfigurationLoadedEvent record in src/main/java/com/chubb/cdc/debezium/domain/configuration/event/ConfigurationLoadedEvent.java
-- [ ] T039 [P] Create ConfigurationChangedEvent record in src/main/java/com/chubb/cdc/debezium/domain/configuration/event/ConfigurationChangedEvent.java
+- [X] T035 [P] Create CaptureStartedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/CaptureStartedEvent.java
+- [X] T036 [P] Create CaptureStoppedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/CaptureStoppedEvent.java
+- [X] T037 [P] Create SchemaChangedEvent record in src/main/java/com/chubb/cdc/debezium/domain/changecapture/event/SchemaChangedEvent.java
+- [X] T038 [P] Create ConfigurationLoadedEvent record in src/main/java/com/chubb/cdc/debezium/domain/configuration/event/ConfigurationLoadedEvent.java
+- [X] T039 [P] Create ConfigurationChangedEvent record in src/main/java/com/chubb/cdc/debezium/domain/configuration/event/ConfigurationChangedEvent.java
 
 ### Repository Ports
 
-- [ ] T040 [P] Create OffsetRepository interface in src/main/java/com/chubb/cdc/debezium/domain/changecapture/repository/OffsetRepository.java
-- [ ] T041 [P] Create ConfigurationRepository interface in src/main/java/com/chubb/cdc/debezium/domain/configuration/repository/ConfigurationRepository.java
-- [ ] T042 [P] Create MetricsRepository interface in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/repository/MetricsRepository.java
+- [X] T040 [P] Create OffsetRepository interface in src/main/java/com/chubb/cdc/debezium/domain/changecapture/repository/OffsetRepository.java
+- [X] T041 [P] Create ConfigurationRepository interface in src/main/java/com/chubb/cdc/debezium/domain/configuration/repository/ConfigurationRepository.java
+- [X] T042 [P] Create MetricsRepository interface in src/main/java/com/chubb/cdc/debezium/domain/healthmonitoring/repository/MetricsRepository.java
 
 ### Application Layer Ports
 
-- [ ] T043 [P] Create EventPublisher port in src/main/java/com/chubb/cdc/debezium/application/port/output/EventPublisher.java
-- [ ] T044 [P] Create DataNormalizer port in src/main/java/com/chubb/cdc/debezium/application/port/output/DataNormalizer.java
-- [ ] T045 [P] Create SchemaRegistry port in src/main/java/com/chubb/cdc/debezium/application/port/output/SchemaRegistry.java
-- [ ] T046 [P] Create CdcEngine port in src/main/java/com/chubb/cdc/debezium/application/port/input/CdcEngine.java
-- [ ] T047 [P] Create ConfigurationService port in src/main/java/com/chubb/cdc/debezium/application/port/input/ConfigurationService.java
+- [X] T043 [P] Create EventPublisher port in src/main/java/com/chubb/cdc/debezium/application/port/output/EventPublisher.java
+- [X] T044 [P] Create DataNormalizer port in src/main/java/com/chubb/cdc/debezium/application/port/output/DataNormalizer.java
+- [X] T045 [P] Create SchemaRegistry port in src/main/java/com/chubb/cdc/debezium/application/port/output/SchemaRegistry.java
+- [X] T046 [P] Create CdcEngine port in src/main/java/com/chubb/cdc/debezium/application/port/input/CdcEngine.java
+- [X] T047 [P] Create ConfigurationService port in src/main/java/com/chubb/cdc/debezium/application/port/input/ConfigurationService.java
 
 ### Application DTOs
 
-- [ ] T048 [P] Create ChangeEventDto in src/main/java/com/chubb/cdc/debezium/application/dto/ChangeEventDto.java
-- [ ] T049 [P] Create ConfigurationDto in src/main/java/com/chubb/cdc/debezium/application/dto/ConfigurationDto.java
-- [ ] T050 [P] Create HealthStatusDto in src/main/java/com/chubb/cdc/debezium/application/dto/HealthStatusDto.java
+- [X] T048 [P] Create ChangeEventDto in src/main/java/com/chubb/cdc/debezium/application/dto/ChangeEventDto.java
+- [X] T049 [P] Create ConfigurationDto in src/main/java/com/chubb/cdc/debezium/application/dto/ConfigurationDto.java
+- [X] T050 [P] Create HealthStatusDto in src/main/java/com/chubb/cdc/debezium/application/dto/HealthStatusDto.java
 
 ### Spring Configuration
 
-- [ ] T051 [P] Create DebeziumConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/DebeziumConfiguration.java
-- [ ] T052 [P] Create KafkaConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/KafkaConfiguration.java
-- [ ] T053 [P] Create SecurityConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/SecurityConfiguration.java (Basic Auth dev, JWT prod)
+- [X] T051 [P] Create DebeziumConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/DebeziumConfiguration.java
+- [X] T052 [P] Create KafkaConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/KafkaConfiguration.java
+- [X] T053 [P] Create SecurityConfiguration in src/main/java/com/chubb/cdc/debezium/infrastructure/config/SecurityConfiguration.java (Basic Auth dev, JWT prod)
 
 ### Unit Tests for Domain Model
 
-- [ ] T054 [P] Unit test for ChangeEvent validation in src/test/java/com/chubb/cdc/debezium/unit/domain/changecapture/ChangeEventTest.java
-- [ ] T055 [P] Unit test for CdcPosition comparison in src/test/java/com/chubb/cdc/debezium/unit/domain/changecapture/CdcPositionTest.java
-- [ ] T056 [P] Unit test for ConfigurationAggregate validation in src/test/java/com/chubb/cdc/debezium/unit/domain/configuration/ConfigurationAggregateTest.java
-- [ ] T057 [P] Unit test for TableConfig validation in src/test/java/com/chubb/cdc/debezium/unit/domain/configuration/TableConfigTest.java
-- [ ] T058 [P] Unit test for HealthStatus state transitions in src/test/java/com/chubb/cdc/debezium/unit/domain/healthmonitoring/HealthStatusTest.java
+- [X] T054 [P] Unit test for ChangeEvent validation in src/test/java/com/chubb/cdc/debezium/unit/domain/changecapture/ChangeEventTest.java
+- [X] T055 [P] Unit test for CdcPosition comparison in src/test/java/com/chubb/cdc/debezium/unit/domain/changecapture/CdcPositionTest.java
+- [X] T056 [P] Unit test for ConfigurationAggregate validation in src/test/java/com/chubb/cdc/debezium/unit/domain/configuration/ConfigurationAggregateTest.java
+- [X] T057 [P] Unit test for TableConfig validation in src/test/java/com/chubb/cdc/debezium/unit/domain/configuration/TableConfigTest.java
+- [X] T058 [P] Unit test for HealthStatus state transitions in src/test/java/com/chubb/cdc/debezium/unit/domain/healthmonitoring/HealthStatusTest.java
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -130,9 +130,9 @@ Single project structure (Clean Architecture with DDD):
 
 ### Contract Tests for User Story 1 (TDD - WRITE FIRST, ENSURE FAILURE) ⚠️
 
-- [ ] T059 [P] [US1] Contract test for OffsetRepository in src/test/java/com/chubb/cdc/debezium/contract/persistence/OffsetRepositoryContractTest.java (test save/load/delete operations)
-- [ ] T060 [P] [US1] Contract test for ConfigurationRepository in src/test/java/com/chubb/cdc/debezium/contract/persistence/ConfigurationRepositoryContractTest.java (test YAML loading)
-- [ ] T061 [P] [US1] Contract test for EventPublisher in src/test/java/com/chubb/cdc/debezium/contract/kafka/EventPublisherContractTest.java (test Kafka publishing)
+- [X] T059 [P] [US1] Contract test for OffsetRepository in src/test/java/com/chubb/cdc/debezium/contract/persistence/OffsetRepositoryContractTest.java (test save/load/delete operations)
+- [X] T060 [P] [US1] Contract test for ConfigurationRepository in src/test/java/com/chubb/cdc/debezium/contract/persistence/ConfigurationRepositoryContractTest.java (test YAML loading)
+- [X] T061 [P] [US1] Contract test for EventPublisher in src/test/java/com/chubb/cdc/debezium/contract/kafka/EventPublisherContractTest.java (test Kafka publishing)
 
 ### Integration Tests for User Story 1 (TDD - WRITE FIRST, ENSURE FAILURE) ⚠️
 

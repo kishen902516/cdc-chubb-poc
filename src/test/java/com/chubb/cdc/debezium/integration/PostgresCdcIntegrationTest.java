@@ -126,7 +126,7 @@ public class PostgresCdcIntegrationTest {
         assertThat(event.table().schema()).isEqualTo("public");
         assertThat(event.before()).isNull();
         assertThat(event.after()).isNotNull();
-        assertThat(event.after().data())
+        assertThat(event.after().fields())
             .containsEntry("customer_id", 456)
             .containsEntry("status", "PENDING")
             .containsEntry("total_amount", 99.99);
@@ -163,9 +163,9 @@ public class PostgresCdcIntegrationTest {
         assertThat(event.operation()).isEqualTo(OperationType.UPDATE);
         assertThat(event.table().table()).isEqualTo("orders");
         assertThat(event.before()).isNotNull();
-        assertThat(event.before().data()).containsEntry("status", "PENDING");
+        assertThat(event.before().fields()).containsEntry("status", "PENDING");
         assertThat(event.after()).isNotNull();
-        assertThat(event.after().data()).containsEntry("status", "CONFIRMED");
+        assertThat(event.after().fields()).containsEntry("status", "CONFIRMED");
     }
 
     @Test
@@ -197,7 +197,7 @@ public class PostgresCdcIntegrationTest {
         assertThat(event.operation()).isEqualTo(OperationType.DELETE);
         assertThat(event.table().table()).isEqualTo("orders");
         assertThat(event.before()).isNotNull();
-        assertThat(event.before().data())
+        assertThat(event.before().fields())
             .containsEntry("order_id", orderId)
             .containsEntry("status", "CANCELLED");
         assertThat(event.after()).isNull();
@@ -289,7 +289,7 @@ public class PostgresCdcIntegrationTest {
 
         assertThat(event).isNotNull();
         assertThat(event.after()).isNotNull();
-        assertThat(event.after().data())
+        assertThat(event.after().fields())
             .containsEntry("customer_id", 456)
             .containsEntry("status", "PENDING")
             .containsEntry("total_amount", null);
