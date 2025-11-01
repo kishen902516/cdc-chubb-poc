@@ -2,34 +2,47 @@
 SYNC IMPACT REPORT
 ==================
 
-Version Change: TEMPLATE → 1.0.0
-Change Type: INITIAL RATIFICATION
+Version Change: 1.0.0 → 1.1.0
+Change Type: MINOR (new principle and technology guidance added)
 Date: 2025-11-01
 
 Modified Principles:
-  - NEW: I. Library-First Architecture
-  - NEW: II. CLI-Driven Interfaces
-  - NEW: III. Test-First Development (NON-NEGOTIABLE)
-  - NEW: IV. Contract & Integration Testing
-  - NEW: V. Observability & Simplicity
+  - NEW: VI. Clean Architecture & Domain-Driven Design
+    - Added Clean Architecture layer structure (Domain, Application, Infrastructure, Presentation)
+    - Added DDD concepts (Ubiquitous Language, Bounded Contexts, Aggregates, Value Objects, Domain Events)
+    - Added dependency rules and interface segregation guidance
+
+Modified Sections:
+  - Development Standards > Technology Stack (NEW):
+    - Java 21 (LTS) designated as primary language
+    - Java 21 feature guidance (Virtual Threads, Records, Pattern Matching, Sealed Classes, etc.)
+    - Build tools, testing frameworks, logging standards specified
+
+  - Development Standards > Code Organization (EXPANDED):
+    - Updated from generic structure to Clean Architecture layers
+    - Added detailed package structure following DDD/Clean Architecture
+    - Strengthened dependency direction rules with layer-specific constraints
+
+  - Quality Gates > Compliance & Testing (EXPANDED):
+    - Added ArchUnit tests for architecture validation
+    - Added domain layer framework independence check
+    - Updated code coverage baselines per layer
 
 Added Sections:
-  - Core Principles (5 principles)
-  - Development Standards
-  - Quality Gates
-  - Governance
+  - Technology Stack (Java 21 focus with modern feature guidance)
 
 Removed Sections:
-  - None (initial version)
+  - None
 
 Templates Status:
-  ✅ plan-template.md - Constitution Check gate validated (no changes needed)
+  ✅ plan-template.md - UPDATED with Java 21 defaults and Clean Architecture structure
   ✅ spec-template.md - User scenarios align with testing principles (no changes needed)
-  ✅ tasks-template.md - UPDATED to enforce mandatory TDD (tests now required, not optional)
+  ✅ tasks-template.md - Previously updated for mandatory TDD (no additional changes)
   ✅ Commands - Validated, no agent-specific references found
 
 Follow-up TODOs:
-  - None at this time
+  - Consider creating ArchUnit test examples in templates
+  - Document DDD tactical patterns (Entity, Value Object, Aggregate) in developer guide when created
 -->
 
 # CDC Chubb POC Constitution
@@ -105,13 +118,85 @@ All code MUST prioritize debuggability and maintainability:
 
 **Rationale**: Simple, observable systems are easier to debug, maintain, and evolve. Complexity should only be introduced when measurably necessary.
 
+### VI. Clean Architecture & Domain-Driven Design
+
+Architecture and domain modeling MUST follow these principles:
+
+- **Clean Architecture Layers** (dependency rule: outer layers depend on inner, never reverse):
+  - **Domain Layer** (innermost): Entities, Value Objects, Domain Events - pure business logic, no framework dependencies
+  - **Application Layer**: Use Cases, Application Services - orchestrates domain logic, defines application workflows
+  - **Infrastructure Layer**: Repositories, External Services, Persistence - implements interfaces defined by domain/application
+  - **Presentation Layer** (outermost): CLI, REST APIs, Web UI - adapters that expose application functionality
+
+- **Domain-Driven Design**:
+  - **Ubiquitous Language**: Domain terms in code must match business terminology exactly - no technical jargon for business concepts
+  - **Bounded Contexts**: Explicitly define context boundaries - same term can mean different things in different contexts
+  - **Aggregates**: Group related entities under an aggregate root - enforce invariants, control transactional boundaries
+  - **Value Objects**: Immutable objects defined by their attributes (e.g., Money, Address) - no identity, compared by value
+  - **Domain Events**: Model significant business events explicitly - enable loose coupling between bounded contexts
+  - **Anti-Corruption Layer**: When integrating external systems, translate their model to your domain model
+
+- **Dependency Injection**: Use constructor injection for dependencies - makes testing easier, dependencies explicit
+
+- **Interface Segregation**: Define interfaces in the layer that uses them (not where they're implemented) - domain defines repository interfaces, infrastructure implements them
+
+**Rationale**: Clean Architecture ensures the core business logic remains independent of frameworks, databases, and UI. DDD ensures the code reflects the business domain accurately, making it easier for domain experts and developers to collaborate.
+
 ## Development Standards
+
+### Technology Stack
+
+- **Language**: Java 21 (LTS) - leverage modern Java features when they improve code clarity or safety
+- **Java 21 Features to Prefer**:
+  - **Virtual Threads** (Project Loom): Use for high-concurrency scenarios instead of traditional thread pools
+  - **Record Patterns**: Use for pattern matching in switch expressions and instanceof checks
+  - **Pattern Matching for switch**: Prefer over traditional switch or if-else chains when handling polymorphic types
+  - **Sequenced Collections**: Use for collections where order matters (SequencedSet, SequencedMap)
+  - **String Templates** (Preview): Use when stable for safer string interpolation
+  - **Records**: Use for immutable data carriers, especially Value Objects in DDD
+  - **Sealed Classes**: Use to restrict inheritance hierarchies, especially for domain modeling
+
+- **Build Tool**: Maven or Gradle (document choice in README)
+- **Testing**: JUnit 5, AssertJ, Mockito, ArchUnit (for architecture validation)
+- **Logging**: SLF4J with Logback or Log4j2
 
 ### Code Organization
 
-- **Single Project Structure**: Use `src/` for implementation, `tests/` for test code (unless web/mobile app requirements dictate frontend/backend separation)
-- **Namespace Clarity**: File and module names must clearly indicate their purpose and layer (models, services, cli, lib)
-- **Dependency Direction**: Dependencies flow inward - libraries depend on nothing, services depend on libraries, CLI depends on services
+- **Clean Architecture Structure** (following Principle VI):
+  ```
+  src/
+  ├── domain/                    # Domain Layer (no external dependencies)
+  │   ├── model/                 # Entities, Value Objects, Aggregates
+  │   ├── event/                 # Domain Events
+  │   └── repository/            # Repository interfaces (not implementations)
+  ├── application/               # Application Layer
+  │   ├── usecase/               # Use Cases / Application Services
+  │   ├── port/                  # Input/Output ports (interfaces)
+  │   └── dto/                   # Data Transfer Objects
+  ├── infrastructure/            # Infrastructure Layer
+  │   ├── persistence/           # Repository implementations, JPA, etc.
+  │   ├── messaging/             # Event publishers, message brokers
+  │   ├── external/              # External service clients
+  │   └── config/                # Framework configuration
+  └── presentation/              # Presentation Layer
+      ├── cli/                   # Command-line interfaces
+      ├── rest/                  # REST API controllers (if applicable)
+      └── dto/                   # API-specific DTOs
+
+  tests/
+  ├── unit/                      # Unit tests (domain, application logic)
+  ├── integration/               # Integration tests (cross-layer)
+  ├── contract/                  # Contract tests (API, repository contracts)
+  └── architecture/              # ArchUnit tests (dependency rules)
+  ```
+
+- **Dependency Direction**: STRICTLY enforce - outer layers depend on inner, never reverse
+  - Domain depends on: NOTHING (pure Java, no frameworks)
+  - Application depends on: Domain
+  - Infrastructure depends on: Domain, Application (implements interfaces defined there)
+  - Presentation depends on: Application (not Infrastructure directly)
+
+- **Namespace Clarity**: Package names must reflect both layer and purpose (e.g., `domain.model.order`, `application.usecase.placeorder`)
 
 ### Versioning & Breaking Changes
 
@@ -137,12 +222,15 @@ All code changes MUST pass these gates before merging:
    - CLI interface present and functional
    - Tests written before implementation (git history or explicit confirmation)
    - Contract and integration tests present for applicable changes
+   - Clean Architecture layer boundaries respected (ArchUnit tests pass)
+   - Domain layer has no framework dependencies (ArchUnit validation)
 
 2. **Test Success**:
-   - All unit tests pass
-   - All contract tests pass
-   - All integration tests pass
-   - Code coverage does not decrease (baseline: 80% for libraries, 70% for services)
+   - All unit tests pass (domain and application logic)
+   - All contract tests pass (API and repository contracts)
+   - All integration tests pass (cross-layer workflows)
+   - All architecture tests pass (ArchUnit dependency rules)
+   - Code coverage does not decrease (baseline: 80% for domain/application, 70% for infrastructure/presentation)
 
 3. **Code Review**:
    - At least one reviewer approval required
@@ -180,4 +268,4 @@ All code changes MUST pass these gates before merging:
 - Outdated or impractical principles must be amended, not ignored
 - Principles found to harm productivity must be revised, not worked around
 
-**Version**: 1.0.0 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01
+**Version**: 1.1.0 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01
