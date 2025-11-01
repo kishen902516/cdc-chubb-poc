@@ -1,0 +1,50 @@
+spring:
+  profiles:
+    active: dev
+
+# Logging for development
+logging:
+  level:
+    root: DEBUG
+    com.chubb.cdc.debezium: DEBUG
+    io.debezium: INFO
+    org.springframework.kafka: DEBUG
+
+# CDC Configuration
+cdc:
+  config-path: ${CDC_CONFIG_PATH:src/main/resources/cdc-config.yml}
+
+  # Offset storage
+  offset:
+    storage-type: file
+    file-path: ${CDC_OFFSET_PATH:data/offsets/cdc-offsets.dat}
+
+  # Database configuration (overridden by cdc-config.yml)
+  database:
+    type: POSTGRESQL
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:cdcdb}
+    username: ${DB_USERNAME:cdcuser}
+    password: ${DB_PASSWORD:cdcpassword}
+
+  # Kafka configuration (overridden by cdc-config.yml)
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    topic-pattern: "cdc.{database}.{table}"
+    producer:
+      acks: all
+      retries: 3
+      compression-type: snappy
+
+# Security - Basic Auth for development
+security:
+  basic:
+    enabled: true
+    username: ${SECURITY_USERNAME:admin}
+    password: ${SECURITY_PASSWORD:admin}
+
+# Configuration refresh
+refresh:
+  enabled: true
+  cron: "0 */5 * * * *"  # Every 5 minutes

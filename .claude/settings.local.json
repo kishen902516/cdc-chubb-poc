@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(find:*)",
+      "Bash(test:*)",
+      "Bash(mvn test-compile:*)",
+      "Bash(1)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,47 @@
+# Git
+.git/
+.gitignore
+
+# Build artifacts
+target/
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+.project
+.classpath
+
+# Logs
+logs/
+*.log
+
+# Documentation
+*.md
+docs/
+specs/
+
+# Environment
+.env
+.env.*
+
+# Test
+.testcontainers/
+test-output/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Data
+data/
+*.dat
+
+# Temporary
+*.tmp
+*.bak
+*~
