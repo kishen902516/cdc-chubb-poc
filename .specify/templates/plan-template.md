@@ -17,17 +17,26 @@
   the iteration process.
 -->
 
-**Language/Version**: Java 21 (LTS) [default per constitution, or specify alternative with justification]
+**Language/Version**: Java 21 (LTS) [default per constitution]
+**Framework**: Spring Boot 3.x [default per constitution - specify version]
 **Architecture Style**: Clean Architecture + DDD [default per constitution Principle VI]
-**Primary Dependencies**: [e.g., Spring Boot 3.x, Quarkus, Micronaut, or plain Java or NEEDS CLARIFICATION]
-**Storage**: [if applicable, e.g., PostgreSQL, MongoDB, H2, files or N/A]
-**Testing**: JUnit 5, AssertJ, Mockito, ArchUnit [default per constitution]
-**Build Tool**: [Maven or Gradle - document choice]
-**Target Platform**: [e.g., JVM 21+, Docker containers, Kubernetes, serverless or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, <100ms p95 latency, 60 fps or NEEDS CLARIFICATION]
-**Constraints**: [domain-specific, e.g., <200ms p95, <512MB memory, offline-capable or NEEDS CLARIFICATION]
-**Scale/Scope**: [domain-specific, e.g., 10k users, 100k transactions/day, 50 microservices or NEEDS CLARIFICATION]
+**Database**: [PostgreSQL (preferred) | MongoDB | Microsoft SQL Server - choose based on data requirements]
+**Primary Dependencies**:
+  - Spring Boot Starters: [e.g., spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-security]
+  - Additional: [e.g., Spring Cloud, Lombok, MapStruct or NEEDS CLARIFICATION]
+**Testing**: JUnit 5, AssertJ, Mockito, ArchUnit, Testcontainers [default per constitution]
+**Build Tool**: [Maven | Gradle - document choice and include Spring Boot plugin]
+**Containerization**: Docker [mandatory per constitution]
+  - Base Image: [e.g., eclipse-temurin:21-jre-alpine]
+  - Additional Tools: [e.g., docker-compose for local development]
+**Orchestration**: Kubernetes [mandatory for production per constitution]
+  - Deployment Strategy: [e.g., Rolling Update, Blue-Green, Canary]
+  - Ingress: [e.g., NGINX, Traefik, or cloud-specific]
+**Target Platform**: JVM 21+ in Docker containers on Kubernetes [default per constitution]
+**Project Type**: [single/web/mobile/microservices - determines source structure]
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, <100ms p95 latency, 10k concurrent users or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific, e.g., <200ms p95, <512MB memory per pod, offline-capable or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific, e.g., 10k users, 100k transactions/day, 5 microservices or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
@@ -98,11 +107,30 @@ src/test/java/com/[company]/[project]/
 ├── unit/                           # Unit tests (domain, application)
 │   ├── domain/
 │   └── application/
-├── integration/                    # Integration tests (cross-layer)
+├── integration/                    # Integration tests (cross-layer, use Testcontainers)
 │   └── usecase/
 └── contract/                       # Contract tests (API, repositories)
     ├── rest/
     └── persistence/
+
+# Repository Root (deployment files - mandatory per constitution)
+Dockerfile                          # Multi-stage build for production image
+docker-compose.yml                  # Local development environment (app + database)
+.env.example                        # Template for environment variables
+.dockerignore                       # Exclude unnecessary files from Docker context
+
+k8s/                                # Kubernetes manifests
+├── base/                           # Base manifests (common across environments)
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── configmap.yaml
+├── dev/                            # Development-specific overlays
+├── staging/                        # Staging-specific overlays
+└── prod/                           # Production-specific overlays
+
+# Build files
+pom.xml or build.gradle             # Maven/Gradle build configuration with Spring Boot plugin
+README.md                           # Project documentation (mandatory per constitution)
 
 # [REMOVE IF UNUSED] Option 2: Web application with separate frontend/backend
 backend/

@@ -2,47 +2,68 @@
 SYNC IMPACT REPORT
 ==================
 
-Version Change: 1.0.0 → 1.1.0
-Change Type: MINOR (new principle and technology guidance added)
+Version Change: 1.1.0 → 1.1.1
+Change Type: PATCH (technology stack clarification and deployment requirements)
 Date: 2025-11-01
 
-Modified Principles:
-  - NEW: VI. Clean Architecture & Domain-Driven Design
-    - Added Clean Architecture layer structure (Domain, Application, Infrastructure, Presentation)
-    - Added DDD concepts (Ubiquitous Language, Bounded Contexts, Aggregates, Value Objects, Domain Events)
-    - Added dependency rules and interface segregation guidance
-
 Modified Sections:
-  - Development Standards > Technology Stack (NEW):
-    - Java 21 (LTS) designated as primary language
-    - Java 21 feature guidance (Virtual Threads, Records, Pattern Matching, Sealed Classes, etc.)
-    - Build tools, testing frameworks, logging standards specified
+  - Development Standards > Technology Stack (CLARIFIED):
+    - **Framework**: Spring Boot 3.x specified as mandatory framework (was generic)
+      - Added Spring-specific guidance (starters, DI boundaries, Actuator)
+      - Emphasized domain layer must remain Spring-annotation-free
+    - **Database Options**: Specified three approved databases with guidance:
+      - PostgreSQL (preferred for relational data)
+      - MongoDB (for document-oriented data)
+      - Microsoft SQL Server (for MSSQL infrastructure integration)
+      - Polyglot persistence allowed per bounded context if justified
+    - **Build & Deployment**: Added comprehensive containerization and orchestration requirements:
+      - Docker mandatory with multi-stage builds
+      - Java 21 base images specified (eclipse-temurin:21-jre-alpine)
+      - Kubernetes mandatory for production deployment
+      - ConfigMaps/Secrets, health checks, resource limits required
+    - **Testing**: Added Testcontainers for database integration tests
+    - **Logging**: Specified Logback as Spring Boot default with structured JSON for production
 
-  - Development Standards > Code Organization (EXPANDED):
-    - Updated from generic structure to Clean Architecture layers
-    - Added detailed package structure following DDD/Clean Architecture
-    - Strengthened dependency direction rules with layer-specific constraints
+  - Development Standards > Documentation Requirements (EXPANDED):
+    - Added deployment documentation requirements:
+      - Dockerfile with commented build stages (mandatory)
+      - docker-compose.yml for local development (mandatory)
+      - Kubernetes manifests in k8s/ directory (mandatory)
+      - .env.example for environment variables (mandatory)
 
-  - Quality Gates > Compliance & Testing (EXPANDED):
-    - Added ArchUnit tests for architecture validation
-    - Added domain layer framework independence check
-    - Updated code coverage baselines per layer
+  - Quality Gates (EXPANDED):
+    - Added Gate 5: Containerization & Deployment
+      - Docker image builds successfully
+      - Image size optimization verified
+      - Container health checks validated
+      - Kubernetes manifests validated (kubectl dry-run)
+      - Environment variables documented
 
-Added Sections:
-  - Technology Stack (Java 21 focus with modern feature guidance)
+Modified Templates:
+  - plan-template.md (UPDATED):
+    - Spring Boot 3.x specified as default framework
+    - Database selection with three approved options
+    - Containerization details (Docker base image, docker-compose)
+    - Kubernetes orchestration requirements (deployment strategy, ingress)
+    - Added deployment files to project structure (Dockerfile, k8s/, .env.example)
+    - Added Testcontainers to testing stack
 
-Removed Sections:
-  - None
+Principles Changed: None
+Added Sections: None
+Removed Sections: None
 
 Templates Status:
-  ✅ plan-template.md - UPDATED with Java 21 defaults and Clean Architecture structure
+  ✅ plan-template.md - UPDATED with Spring Boot, database options, Docker/Kubernetes
   ✅ spec-template.md - User scenarios align with testing principles (no changes needed)
   ✅ tasks-template.md - Previously updated for mandatory TDD (no additional changes)
   ✅ Commands - Validated, no agent-specific references found
 
 Follow-up TODOs:
-  - Consider creating ArchUnit test examples in templates
-  - Document DDD tactical patterns (Entity, Value Object, Aggregate) in developer guide when created
+  - Consider creating example Dockerfile with multi-stage build
+  - Consider creating example docker-compose.yml with PostgreSQL/MongoDB/MSSQL options
+  - Consider creating example Kubernetes manifests (base + overlays)
+  - Consider creating ArchUnit test examples
+  - Document Spring Boot + Clean Architecture integration patterns
 -->
 
 # CDC Chubb POC Constitution
@@ -156,9 +177,32 @@ Architecture and domain modeling MUST follow these principles:
   - **Records**: Use for immutable data carriers, especially Value Objects in DDD
   - **Sealed Classes**: Use to restrict inheritance hierarchies, especially for domain modeling
 
-- **Build Tool**: Maven or Gradle (document choice in README)
-- **Testing**: JUnit 5, AssertJ, Mockito, ArchUnit (for architecture validation)
-- **Logging**: SLF4J with Logback or Log4j2
+- **Framework**: Spring Boot 3.x (requires Java 17+, fully supports Java 21)
+  - Use Spring Boot starters for infrastructure concerns (data, web, security)
+  - Keep domain layer free of Spring annotations (Principle VI - Clean Architecture)
+  - Use Spring's dependency injection only in infrastructure and presentation layers
+  - Leverage Spring Boot Actuator for observability (metrics, health checks)
+
+- **Database Options** (choose based on feature requirements):
+  - **PostgreSQL**: Preferred for relational data, ACID transactions, complex queries
+  - **MongoDB**: Use for document-oriented data, flexible schemas, high write throughput
+  - **Microsoft SQL Server**: Use when integration with existing MSSQL infrastructure required
+  - **Multi-Database**: Polyglot persistence allowed per bounded context if justified
+
+- **Build & Deployment**:
+  - **Build Tool**: Maven or Gradle (document choice in README, include Spring Boot plugin)
+  - **Containerization**: Docker mandatory - all services must be containerizable
+    - Multi-stage builds to minimize image size
+    - Use official Java 21 base images (eclipse-temurin:21-jre-alpine or similar)
+    - Externalize configuration for different environments
+  - **Orchestration**: Kubernetes for production deployment
+    - Define Kubernetes manifests (Deployments, Services, ConfigMaps, Secrets)
+    - Use Kubernetes ConfigMaps/Secrets for environment-specific configuration
+    - Health checks (liveness, readiness) required for all services
+    - Resource limits (CPU, memory) must be defined
+
+- **Testing**: JUnit 5, AssertJ, Mockito, ArchUnit (for architecture validation), Testcontainers (for integration tests with real databases)
+- **Logging**: SLF4J with Logback (Spring Boot default) - structured JSON logging for production
 
 ### Code Organization
 
@@ -209,9 +253,22 @@ Architecture and domain modeling MUST follow these principles:
 
 ### Documentation Requirements
 
-- **README.md**: Every library must have a README with purpose, installation, quick start, and links to detailed docs
+- **README.md**: Every library/service must have a README with:
+  - Purpose and business context
+  - Installation and build instructions
+  - Local development setup (including database)
+  - Quick start guide
+  - Links to detailed documentation
+
 - **API Documentation**: All public functions/classes must have docstrings with parameter descriptions, return types, and examples
-- **Architecture Decision Records (ADRs)**: Significant design decisions must be documented with context, decision, and consequences
+
+- **Architecture Decision Records (ADRs)**: Significant design decisions must be documented with context, decision, and consequences (e.g., database choice, framework selection, bounded context boundaries)
+
+- **Deployment Documentation**:
+  - **Dockerfile**: Must be present at repository root with comments explaining build stages
+  - **docker-compose.yml**: For local development with all required services (database, message broker, etc.)
+  - **Kubernetes Manifests**: In `k8s/` directory with separate files for dev/staging/prod environments
+  - **Environment Variables**: Document all required environment variables with examples in `.env.example`
 
 ## Quality Gates
 
@@ -243,6 +300,13 @@ All code changes MUST pass these gates before merging:
    - Integration with existing components verified
    - Performance benchmarks within acceptable thresholds
 
+5. **Containerization & Deployment**:
+   - Docker image builds successfully
+   - Docker image size optimized (use multi-stage builds)
+   - Container runs and passes health checks
+   - Kubernetes manifests validated (kubectl dry-run or kubeval)
+   - All environment variables documented
+
 ## Governance
 
 ### Authority & Amendments
@@ -268,4 +332,4 @@ All code changes MUST pass these gates before merging:
 - Outdated or impractical principles must be amended, not ignored
 - Principles found to harm productivity must be revised, not worked around
 
-**Version**: 1.1.0 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01
+**Version**: 1.1.1 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01
