@@ -136,46 +136,46 @@ Single project structure (Clean Architecture with DDD):
 
 ### Integration Tests for User Story 1 (TDD - WRITE FIRST, ENSURE FAILURE) ⚠️
 
-- [X] T062 [US1] PostgreSQL CDC integration test in src/test/java/com/chubb/cdc/debezium/integration/PostgresCdcIntegrationTest.java (Testcontainers: PostgreSQL + Kafka, test INSERT/UPDATE/DELETE capture)
-- [X] T063 [US1] Kafka publishing integration test in src/test/java/com/chubb/cdc/debezium/integration/KafkaPublishingIntegrationTest.java (Testcontainers: verify event format matches change-event-schema.json)
+- [ ] T062 [US1] PostgreSQL CDC integration test in src/test/java/com/chubb/cdc/debezium/integration/PostgresCdcIntegrationTest.java (Testcontainers: PostgreSQL + Kafka, test INSERT/UPDATE/DELETE capture)
+- [ ] T063 [US1] Kafka publishing integration test in src/test/java/com/chubb/cdc/debezium/integration/KafkaPublishingIntegrationTest.java (Testcontainers: verify event format matches change-event-schema.json)
 
 ### Implementation for User Story 1
 
 #### Infrastructure - Persistence (File-based Offset Storage)
 
-- [X] T064 [P] [US1] Implement FileOffsetStore in src/main/java/com/chubb/cdc/debezium/infrastructure/persistence/offset/FileOffsetStore.java
-- [X] T065 [US1] Implement OffsetRepositoryAdapter in src/main/java/com/chubb/cdc/debezium/infrastructure/persistence/offset/OffsetRepositoryAdapter.java (depends on T064)
+- [ ] T064 [P] [US1] Implement FileOffsetStore in src/main/java/com/chubb/cdc/debezium/infrastructure/persistence/offset/FileOffsetStore.java
+- [ ] T065 [US1] Implement OffsetRepositoryAdapter in src/main/java/com/chubb/cdc/debezium/infrastructure/persistence/offset/OffsetRepositoryAdapter.java (depends on T064)
 
 #### Infrastructure - Configuration (YAML-based Configuration)
 
-- [X] T066 [P] [US1] Implement FileConfigurationLoader in src/main/java/com/chubb/cdc/debezium/infrastructure/configuration/FileConfigurationLoader.java (load from YAML per configuration-schema.yaml)
-- [X] T067 [US1] Add configuration validation logic to FileConfigurationLoader (database connection, Kafka brokers, table names, SSL paths)
+- [ ] T066 [P] [US1] Implement FileConfigurationLoader in src/main/java/com/chubb/cdc/debezium/infrastructure/configuration/FileConfigurationLoader.java (load from YAML per configuration-schema.yaml)
+- [ ] T067 [US1] Add configuration validation logic to FileConfigurationLoader (database connection, Kafka brokers, table names, SSL paths)
 
 #### Infrastructure - Debezium (PostgreSQL Connector)
 
-- [X] T068 [P] [US1] Implement ConnectorFactory in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/ConnectorFactory.java (Factory pattern)
-- [X] T069 [US1] Implement PostgresConnectorStrategy in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/PostgresConnectorStrategy.java (PostgreSQL-specific Debezium config)
-- [X] T070 [US1] Implement DebeziumEngineAdapter in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/DebeziumEngineAdapter.java (wrap Debezium Embedded Engine, depends on T068, T069)
+- [ ] T068 [P] [US1] Implement ConnectorFactory in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/ConnectorFactory.java (Factory pattern)
+- [ ] T069 [US1] Implement PostgresConnectorStrategy in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/PostgresConnectorStrategy.java (PostgreSQL-specific Debezium config)
+- [ ] T070 [US1] Implement DebeziumEngineAdapter in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/DebeziumEngineAdapter.java (wrap Debezium Embedded Engine, depends on T068, T069)
 
 #### Infrastructure - Kafka (Event Publishing)
 
-- [X] T071 [P] [US1] Implement TopicNameResolver in src/main/java/com/chubb/cdc/debezium/infrastructure/kafka/TopicNameResolver.java (resolve topic from pattern)
-- [X] T072 [US1] Implement KafkaEventPublisher in src/main/java/com/chubb/cdc/debezium/infrastructure/kafka/KafkaEventPublisher.java (Spring Kafka producer, depends on T071)
+- [ ] T071 [P] [US1] Implement TopicNameResolver in src/main/java/com/chubb/cdc/debezium/infrastructure/kafka/TopicNameResolver.java (resolve topic from pattern)
+- [ ] T072 [US1] Implement KafkaEventPublisher in src/main/java/com/chubb/cdc/debezium/infrastructure/kafka/KafkaEventPublisher.java (Spring Kafka producer, depends on T071)
 
 #### Infrastructure - Normalization (Data Type Normalization)
 
-- [X] T073 [P] [US1] Implement TimestampNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/TimestampNormalizer.java (convert to ISO-8601)
-- [X] T074 [P] [US1] Implement NumericNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/NumericNormalizer.java (JSON number format)
-- [X] T075 [P] [US1] Implement TextNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/TextNormalizer.java (UTF-8 encoding)
-- [X] T076 [US1] Implement DataNormalizerImpl in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/DataNormalizerImpl.java (orchestrate normalizers, depends on T073-T075)
+- [ ] T073 [P] [US1] Implement TimestampNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/TimestampNormalizer.java (convert to ISO-8601)
+- [ ] T074 [P] [US1] Implement NumericNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/NumericNormalizer.java (JSON number format)
+- [ ] T075 [P] [US1] Implement TextNormalizer in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/TextNormalizer.java (UTF-8 encoding)
+- [ ] T076 [US1] Implement DataNormalizerImpl in src/main/java/com/chubb/cdc/debezium/infrastructure/normalization/DataNormalizerImpl.java (orchestrate normalizers, depends on T073-T075)
 
 #### Application - Use Cases
 
-- [X] T077 [P] [US1] Implement LoadConfigurationUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/configuration/LoadConfigurationUseCase.java
-- [X] T078 [P] [US1] Implement ValidateConfigurationUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/configuration/ValidateConfigurationUseCase.java
-- [X] T079 [US1] Implement StartCaptureUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/StartCaptureUseCase.java (initialize Debezium, depends on T070)
-- [X] T080 [US1] Implement ProcessChangeEventUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/ProcessChangeEventUseCase.java (normalize + publish, depends on T072, T076)
-- [X] T081 [US1] Implement StopCaptureUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/StopCaptureUseCase.java (graceful shutdown, save offset)
+- [ ] T077 [P] [US1] Implement LoadConfigurationUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/configuration/LoadConfigurationUseCase.java
+- [ ] T078 [P] [US1] Implement ValidateConfigurationUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/configuration/ValidateConfigurationUseCase.java
+- [ ] T079 [US1] Implement StartCaptureUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/StartCaptureUseCase.java (initialize Debezium, depends on T070)
+- [ ] T080 [US1] Implement ProcessChangeEventUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/ProcessChangeEventUseCase.java (normalize + publish, depends on T072, T076)
+- [ ] T081 [US1] Implement StopCaptureUseCase in src/main/java/com/chubb/cdc/debezium/application/usecase/changecapture/StopCaptureUseCase.java (graceful shutdown, save offset)
 
 #### Unit Tests for Use Cases
 
@@ -184,14 +184,14 @@ Single project structure (Clean Architecture with DDD):
 
 #### Presentation - CLI (Management Commands)
 
-- [X] T084 [P] [US1] Implement CdcCommand in src/main/java/com/chubb/cdc/debezium/presentation/cli/CdcCommand.java (start, stop, status commands)
-- [X] T085 [P] [US1] Implement ConfigCommand in src/main/java/com/chubb/cdc/debezium/presentation/cli/ConfigCommand.java (validate, show commands)
+- [ ] T084 [P] [US1] Implement CdcCommand in src/main/java/com/chubb/cdc/debezium/presentation/cli/CdcCommand.java (start, stop, status commands)
+- [ ] T085 [P] [US1] Implement ConfigCommand in src/main/java/com/chubb/cdc/debezium/presentation/cli/ConfigCommand.java (validate, show commands)
 
 #### Presentation - REST API (Health & Metrics Endpoints for US1)
 
-- [X] T086 [US1] Implement GlobalExceptionHandler in src/main/java/com/chubb/cdc/debezium/presentation/rest/advice/GlobalExceptionHandler.java (standard error responses per ErrorResponse schema)
-- [X] T087 [P] [US1] Implement HealthController in src/main/java/com/chubb/cdc/debezium/presentation/rest/HealthController.java (GET /cdc/health, /cdc/health/database endpoints)
-- [X] T088 [P] [US1] Implement ConfigurationController in src/main/java/com/chubb/cdc/debezium/presentation/rest/ConfigurationController.java (GET /cdc/config/status, /cdc/config/tables endpoints)
+- [ ] T086 [US1] Implement GlobalExceptionHandler in src/main/java/com/chubb/cdc/debezium/presentation/rest/advice/GlobalExceptionHandler.java (standard error responses per ErrorResponse schema)
+- [ ] T087 [P] [US1] Implement HealthController in src/main/java/com/chubb/cdc/debezium/presentation/rest/HealthController.java (GET /cdc/health, /cdc/health/database endpoints)
+- [ ] T088 [P] [US1] Implement ConfigurationController in src/main/java/com/chubb/cdc/debezium/presentation/rest/ConfigurationController.java (GET /cdc/config/status, /cdc/config/tables endpoints)
 
 #### Contract Tests for REST API (TDD - WRITE FIRST, ENSURE FAILURE) ⚠️
 
@@ -199,8 +199,8 @@ Single project structure (Clean Architecture with DDD):
 
 #### Application Wiring
 
-- [X] T090 [US1] Wire all components in Spring Boot main application class src/main/java/com/chubb/cdc/debezium/DebeziumCdcApplication.java
-- [X] T091 [US1] Create sample cdc-config.yml in src/main/resources/ for local development (PostgreSQL localhost, tables: public.orders, public.customers)
+- [ ] T090 [US1] Wire all components in Spring Boot main application class src/main/java/com/chubb/cdc/debezium/DebeziumCdcApplication.java
+- [ ] T091 [US1] Create sample cdc-config.yml in src/main/resources/ for local development (PostgreSQL localhost, tables: public.orders, public.customers)
 
 #### End-to-End Validation
 
