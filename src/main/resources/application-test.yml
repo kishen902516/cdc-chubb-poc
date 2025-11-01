@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: test
+
+# Logging for testing
+logging:
+  level:
+    root: WARN
+    com.chubb.cdc.debezium: TRACE
+    io.debezium: DEBUG
+    org.testcontainers: INFO
+
+# CDC Configuration for testing (Testcontainers)
+cdc:
+  config-path: ${CDC_CONFIG_PATH:src/test/resources/cdc-config-test.yml}
+
+  offset:
+    storage-type: file
+    file-path: ${CDC_OFFSET_PATH:target/test-offsets/cdc-offsets.dat}
+
+# Security disabled for testing
+security:
+  basic:
+    enabled: false
+
+# Configuration refresh disabled for testing
+refresh:
+  enabled: false

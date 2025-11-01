@@ -1,0 +1,49 @@
+spring:
+  profiles:
+    active: prod
+
+# Logging for production - JSON structured logs
+logging:
+  level:
+    root: INFO
+    com.chubb.cdc.debezium: INFO
+    io.debezium: WARN
+    org.springframework.kafka: WARN
+
+# CDC Configuration
+cdc:
+  config-path: ${CDC_CONFIG_PATH:/config/cdc-config.yml}
+
+  offset:
+    storage-type: file
+    file-path: ${CDC_OFFSET_PATH:/data/offsets/cdc-offsets.dat}
+
+  # Database configuration (must be provided via cdc-config.yml)
+  kafka:
+    producer:
+      acks: all
+      retries: 5
+      compression-type: lz4
+      max-in-flight-requests-per-connection: 1
+      enable-idempotence: true
+
+# Security - JWT for production
+security:
+  jwt:
+    enabled: true
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:cdc-application}
+    expiration: ${JWT_EXPIRATION:3600}
+
+# Configuration refresh
+refresh:
+  enabled: true
+  cron: "0 */5 * * * *"  # Every 5 minutes
+
+# SSL/TLS for production
+server:
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEYSTORE_PATH:/config/ssl/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-store-type: PKCS12

@@ -1,0 +1,57 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.log
+target/
+*.iml
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.settings/
+.project
+.classpath
+
+# Spring Boot
+spring.log
+application-local.yml
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+build/
+dist/
+out/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# CDC Offset storage (local development)
+data/offsets/
+
+# Test
+test-output/
+.testcontainers/
