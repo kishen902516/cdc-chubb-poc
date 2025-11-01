@@ -179,8 +179,8 @@ Single project structure (Clean Architecture with DDD):
 
 #### Unit Tests for Use Cases
 
-- [ ] T082 [P] [US1] Unit test for LoadConfigurationUseCase in src/test/java/com/chubb/cdc/debezium/unit/application/LoadConfigurationUseCaseTest.java
-- [ ] T083 [P] [US1] Unit test for ProcessChangeEventUseCase in src/test/java/com/chubb/cdc/debezium/unit/application/ProcessChangeEventUseCaseTest.java
+- [X] T082 [P] [US1] Unit test for LoadConfigurationUseCase in src/test/java/com/chubb/cdc/debezium/unit/application/LoadConfigurationUseCaseTest.java
+- [X] T083 [P] [US1] Unit test for ProcessChangeEventUseCase in src/test/java/com/chubb/cdc/debezium/unit/application/ProcessChangeEventUseCaseTest.java
 
 #### Presentation - CLI (Management Commands)
 
@@ -195,7 +195,7 @@ Single project structure (Clean Architecture with DDD):
 
 #### Contract Tests for REST API (TDD - WRITE FIRST, ENSURE FAILURE) ⚠️
 
-- [ ] T089 [US1] REST API contract test in src/test/java/com/chubb/cdc/debezium/contract/rest/HealthApiContractTest.java (verify all endpoints match openapi.yaml, use Spring MockMvc)
+- [X] T089 [US1] REST API contract test in src/test/java/com/chubb/cdc/debezium/contract/rest/HealthApiContractTest.java (verify all endpoints match openapi.yaml, use Spring MockMvc)
 
 #### Application Wiring
 
@@ -204,7 +204,7 @@ Single project structure (Clean Architecture with DDD):
 
 #### End-to-End Validation
 
-- [ ] T092 [US1] Run integration tests (T062, T063) and verify they PASS
+- [X] T092 [US1] Run integration tests (T062, T063) and verify they PASS
 - [ ] T093 [US1] Manual test: Start docker-compose, run application with dev profile, execute quickstart.md steps 1-5, verify INSERT/UPDATE/DELETE events in Kafka
 
 **Checkpoint**: User Story 1 complete - CDC captures PostgreSQL changes and publishes to Kafka

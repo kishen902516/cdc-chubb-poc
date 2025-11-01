@@ -63,7 +63,7 @@ public class ConfigurationController {
 
         } catch (Exception e) {
             log.error("Failed to retrieve configuration status", e);
-            throw e;
+            throw new RuntimeException("Failed to retrieve configuration status", e);
         }
     }
 
@@ -92,7 +92,7 @@ public class ConfigurationController {
 
         } catch (Exception e) {
             log.error("Failed to retrieve monitored tables", e);
-            throw e;
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

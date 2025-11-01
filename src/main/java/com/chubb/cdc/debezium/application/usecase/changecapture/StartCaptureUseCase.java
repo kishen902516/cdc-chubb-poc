@@ -1,7 +1,7 @@
 package com.chubb.cdc.debezium.application.usecase.changecapture;
 
 import com.chubb.cdc.debezium.application.port.input.CdcEngine;
-import com.chubb.cdc.debezium.application.port.output.EventPublisher;
+import com.chubb.cdc.debezium.application.port.output.DomainEventPublisher;
 import com.chubb.cdc.debezium.domain.changecapture.event.CaptureStartedEvent;
 import com.chubb.cdc.debezium.domain.changecapture.model.CdcPosition;
 import com.chubb.cdc.debezium.domain.changecapture.model.TableIdentifier;
@@ -33,7 +33,7 @@ public class StartCaptureUseCase {
 
     private final CdcEngine cdcEngine;
     private final OffsetRepository offsetRepository;
-    private final EventPublisher eventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Start CDC capture with the given configuration.
@@ -123,7 +123,7 @@ public class StartCaptureUseCase {
             );
 
             try {
-                eventPublisher.publish(event);
+                domainEventPublisher.publish(event);
                 log.debug("Published CaptureStartedEvent for table: {}", table.fullyQualifiedName());
             } catch (Exception e) {
                 log.warn("Failed to publish CaptureStartedEvent for table: {}", table.fullyQualifiedName(), e);

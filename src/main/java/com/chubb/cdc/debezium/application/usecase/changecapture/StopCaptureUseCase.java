@@ -1,7 +1,7 @@
 package com.chubb.cdc.debezium.application.usecase.changecapture;
 
 import com.chubb.cdc.debezium.application.port.input.CdcEngine;
-import com.chubb.cdc.debezium.application.port.output.EventPublisher;
+import com.chubb.cdc.debezium.application.port.output.DomainEventPublisher;
 import com.chubb.cdc.debezium.domain.changecapture.event.CaptureStoppedEvent;
 import com.chubb.cdc.debezium.domain.changecapture.model.CdcPosition;
 import com.chubb.cdc.debezium.domain.changecapture.model.TableIdentifier;
@@ -37,7 +37,7 @@ public class StopCaptureUseCase {
 
     private final CdcEngine cdcEngine;
     private final OffsetRepository offsetRepository;
-    private final EventPublisher eventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
     private static final Duration SHUTDOWN_TIMEOUT = Duration.ofSeconds(30);
 
@@ -188,7 +188,7 @@ public class StopCaptureUseCase {
             );
 
             try {
-                eventPublisher.publish(event);
+                domainEventPublisher.publish(event);
                 log.debug("Published CaptureStoppedEvent for table: {}", table.fullyQualifiedName());
             } catch (Exception e) {
                 log.warn("Failed to publish CaptureStoppedEvent for table: {}",

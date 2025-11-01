@@ -3,7 +3,7 @@ package com.chubb.cdc.debezium.application.usecase.configuration;
 import com.chubb.cdc.debezium.domain.configuration.model.ConfigurationAggregate;
 import com.chubb.cdc.debezium.domain.configuration.repository.ConfigurationRepository;
 import com.chubb.cdc.debezium.domain.configuration.event.ConfigurationLoadedEvent;
-import com.chubb.cdc.debezium.application.port.output.EventPublisher;
+import com.chubb.cdc.debezium.application.port.output.DomainEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import java.time.Instant;
 public class LoadConfigurationUseCase {
 
     private final ConfigurationRepository configurationRepository;
-    private final EventPublisher eventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Load configuration from the configured source.
@@ -53,7 +53,7 @@ public class LoadConfigurationUseCase {
                     configuration,
                     "file-system" // TODO: Make this configurable based on repository implementation
             );
-            eventPublisher.publish(event);
+            domainEventPublisher.publish(event);
             log.debug("Published ConfigurationLoadedEvent");
 
             return configuration;

@@ -1,10 +1,12 @@
 package com.chubb.cdc.debezium.application.usecase.changecapture;
 
+import com.chubb.cdc.debezium.application.dto.ChangeEventDto;
 import com.chubb.cdc.debezium.application.port.output.DataNormalizer;
 import com.chubb.cdc.debezium.application.port.output.EventPublisher;
 import com.chubb.cdc.debezium.domain.changecapture.model.ChangeEvent;
 import com.chubb.cdc.debezium.domain.changecapture.model.RowData;
 import com.chubb.cdc.debezium.domain.changecapture.repository.OffsetRepository;
+import com.chubb.cdc.debezium.domain.configuration.model.DatabaseType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,9 +41,10 @@ public class ProcessChangeEventUseCase {
      * Process a captured change event.
      *
      * @param event The change event to process
+     * @param databaseType The source database type for normalization
      * @throws ProcessingException if the event cannot be processed
      */
-    public void execute(ChangeEvent event) {
+    public void execute(ChangeEvent event, DatabaseType databaseType) {
         Instant startTime = Instant.now();
         log.debug("Processing change event: {} on table {}",
                 event.operation(),
@@ -49,7 +52,7 @@ public class ProcessChangeEventUseCase {
 
         try {
             // Step 1: Normalize the event data
-            ChangeEvent normalizedEvent = normalizeEvent(event);
+            ChangeEvent normalizedEvent = normalizeEvent(event, databaseType);
             log.trace("Event data normalized for table: {}", event.table().fullyQualifiedName());
 
             // Step 2: Publish to Kafka
@@ -79,18 +82,18 @@ public class ProcessChangeEventUseCase {
      * Normalize the change event data.
      * Applies normalization rules to timestamps, numeric types, and text.
      */
-    private ChangeEvent normalizeEvent(ChangeEvent event) {
+    private ChangeEvent normalizeEvent(ChangeEvent event, DatabaseType databaseType) {
         log.trace("Normalizing change event data");
 
         try {
             // Normalize 'before' data if present
             RowData normalizedBefore = event.before() != null
-                    ? new RowData(dataNormalizer.normalize(event.before().fields()))
+                    ? dataNormalizer.normalize(event.before().fields(), databaseType)
                     : null;
 
             // Normalize 'after' data if present
             RowData normalizedAfter = event.after() != null
-                    ? new RowData(dataNormalizer.normalize(event.after().fields()))
+                    ? dataNormalizer.normalize(event.after().fields(), databaseType)
                     : null;
 
             // Create normalized event
@@ -117,7 +120,9 @@ public class ProcessChangeEventUseCase {
         log.trace("Publishing event to Kafka for table: {}", event.table().fullyQualifiedName());
 
         try {
-            eventPublisher.publish(event);
+            // Convert to DTO
+            ChangeEventDto dto = convertToDto(event);
+            eventPublisher.publish(dto);
             log.trace("Event published successfully to Kafka");
 
         } catch (Exception e) {
@@ -125,6 +130,13 @@ public class ProcessChangeEventUseCase {
                     event.table().fullyQualifiedName(), e);
             throw new PublishException("Failed to publish event to Kafka", e);
         }
+    }
+
+    /**
+     * Convert ChangeEvent domain model to DTO for publishing.
+     */
+    private ChangeEventDto convertToDto(ChangeEvent event) {
+        return ChangeEventDto.fromDomain(event);
     }
 
     /**
@@ -150,9 +162,10 @@ public class ProcessChangeEventUseCase {
      * Useful for high-throughput scenarios.
      *
      * @param events The batch of events to process
+     * @param databaseType The source database type for normalization
      * @return ProcessingResult containing success/failure counts
      */
-    public ProcessingResult executeBatch(java.util.List<ChangeEvent> events) {
+    public ProcessingResult executeBatch(java.util.List<ChangeEvent> events, DatabaseType databaseType) {
         log.info("Processing batch of {} events", events.size());
 
         int successCount = 0;
@@ -161,7 +174,7 @@ public class ProcessChangeEventUseCase {
 
         for (ChangeEvent event : events) {
             try {
-                execute(event);
+                execute(event, databaseType);
                 successCount++;
             } catch (ProcessingException e) {
                 failureCount++;

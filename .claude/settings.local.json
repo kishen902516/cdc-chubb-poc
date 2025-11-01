@@ -11,7 +11,9 @@
       "Bash(if [ -d \"C:/development/cdc/cdc-chubb-poc/specs/001-debezium-cdc-app/checklists\" ])",
       "Bash(then find \"C:/development/cdc/cdc-chubb-poc/specs/001-debezium-cdc-app/checklists\" -name \"*.md\" -type f)",
       "Bash(else echo \"No checklists directory\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(./mvnw clean:*)",
+      "Bash(mvn test:*)"
     ],
     "deny": [],
     "ask": []

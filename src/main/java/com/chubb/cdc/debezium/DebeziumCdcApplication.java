@@ -48,7 +48,7 @@ public class DebeziumCdcApplication {
         log.info("═══════════════════════════════════════════════════════");
 
         try {
-            SpringApplication.run(DebeziumCdcApplication.java, args);
+            SpringApplication.run(DebeziumCdcApplication.class, args);
 
             log.info("═══════════════════════════════════════════════════════");
             log.info("     Debezium CDC Application Started Successfully");
