@@ -1,0 +1,242 @@
+# Configuration Schema for Debezium CDC Application
+# This file documents the expected structure of the configuration YAML file
+# Place your configuration at: /config/cdc-config.yml (or path specified in CDC_CONFIG_PATH env var)
+
+# Schema version for this configuration format
+schemaVersion: 1
+
+# Source database configuration
+database:
+  # Database type (required)
+  # Valid values: POSTGRESQL, MYSQL, SQLSERVER, ORACLE
+  type: POSTGRESQL
+
+  # Database host (required)
+  # Can be hostname, IP address, or DNS name
+  host: localhost
+
+  # Database port (required)
+  # Must be valid port number (1-65535)
+  port: 5432
+
+  # Database name (required)
+  database: mydb
+
+  # Database username (required)
+  username: cdcuser
+
+  # Database password (required)
+  # Can be literal password or reference to environment variable: ${DB_PASSWORD}
+  password: ${DB_PASSWORD}
+
+  # SSL/TLS configuration (optional)
+  ssl:
+    # Enable SSL connection (default: false)
+    enabled: false
+
+    # SSL mode (required if enabled: true)
+    # Valid values: REQUIRE, VERIFY_CA, VERIFY_FULL
+    mode: REQUIRE
+
+    # Path to CA certificate (optional, required for VERIFY_CA and VERIFY_FULL)
+    caCertPath: /certs/ca.crt
+
+    # Path to client certificate (optional, for mutual TLS)
+    clientCertPath: /certs/client.crt
+
+    # Path to client key (optional, for mutual TLS)
+    clientKeyPath: /certs/client.key
+
+  # Additional database-specific properties (optional)
+  # These are passed directly to the JDBC connection
+  additionalProperties:
+    tcpKeepAlive: "true"
+    connectTimeout: "10"
+
+# Tables to monitor for changes
+tables:
+  # Each table entry specifies which table to monitor and how
+  - # Table name (required)
+    # Format: schema.table for databases with schemas (PostgreSQL, SQL Server, Oracle)
+    # Format: table for databases without schemas (MySQL)
+    name: public.orders
+
+    # Include mode (optional, default: INCLUDE_ALL)
+    # INCLUDE_ALL: capture all columns
+    # EXCLUDE_SPECIFIED: capture all except columns listed in columnFilter
+    includeMode: INCLUDE_ALL
+
+    # Column filter (optional, only used with EXCLUDE_SPECIFIED mode)
+    # List of column names to exclude from capture
+    columnFilter: []
+
+  - name: public.customers
+    includeMode: EXCLUDE_SPECIFIED
+    columnFilter:
+      - password_hash  # Exclude sensitive columns
+      - credit_card_number
+
+  - # Example: Table without primary key requires composite unique key configuration
+    name: public.audit_log
+    includeMode: INCLUDE_ALL
+
+    # Composite unique key (optional, required for tables without primary key)
+    # Specifies columns that together uniquely identify a row
+    compositeKey:
+      columnNames:
+        - user_id
+        - event_timestamp
+        - event_type
+
+# Kafka configuration
+kafka:
+  # Kafka broker addresses (required)
+  # List of host:port for Kafka brokers
+  brokers:
+    - localhost:9092
+    - localhost:9093
+    - localhost:9094
+
+  # Topic naming pattern (required)
+  # Placeholders: {database}, {schema}, {table}
+  # Examples:
+  #   "cdc.{database}.{table}" → cdc.mydb.orders
+  #   "cdc.{database}.{schema}.{table}" → cdc.mydb.public.orders
+  #   "{database}-changes-{table}" → mydb-changes-orders
+  topicPattern: "cdc.{database}.{table}"
+
+  # Kafka security configuration (optional)
+  security:
+    # Security protocol (required if security section present)
+    # Valid values: SSL, SASL_SSL, SASL_PLAINTEXT
+    protocol: SASL_SSL
+
+    # SASL mechanism (required if protocol is SASL_SSL or SASL_PLAINTEXT)
+    # Valid values: PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
+    mechanism: SCRAM-SHA-256
+
+    # SASL username (required for SASL mechanisms)
+    username: kafka-user
+
+    # SASL password (required for SASL mechanisms)
+    # Can reference environment variable: ${KAFKA_PASSWORD}
+    password: ${KAFKA_PASSWORD}
+
+    # SSL truststore configuration (required for SSL and SASL_SSL)
+    truststore:
+      path: /certs/kafka.truststore.jks
+      password: ${TRUSTSTORE_PASSWORD}
+
+  # Kafka producer properties (optional)
+  # These are passed directly to the Kafka producer
+  # See: https://kafka.apache.org/documentation/#producerconfigs
+  producerProperties:
+    # Acknowledgment mode (default: all)
+    acks: "all"
+
+    # Compression type (default: none)
+    # Valid values: none, gzip, snappy, lz4, zstd
+    compression.type: "snappy"
+
+    # Maximum request size in bytes (default: 1048576 = 1MB)
+    max.request.size: 1048576
+
+    # Linger time in milliseconds (default: 0)
+    # Higher values increase batching but add latency
+    linger.ms: 10
+
+    # Batch size in bytes (default: 16384 = 16KB)
+    batch.size: 16384
+
+    # Delivery timeout in milliseconds (default: 120000 = 2 minutes)
+    delivery.timeout.ms: 120000
+
+# Configuration refresh settings (optional)
+refresh:
+  # Enable automatic configuration refresh (default: true)
+  enabled: true
+
+  # Refresh interval in minutes (default: 5)
+  # Application checks for config file changes every N minutes
+  intervalMinutes: 5
+
+# Monitoring and metrics settings (optional)
+monitoring:
+  # Enable metrics collection (default: true)
+  metricsEnabled: true
+
+  # Metrics retention period in hours (default: 24)
+  # How long to keep historical metrics in memory
+  retentionHours: 24
+
+  # Health check interval in seconds (default: 60)
+  # How often to check database and Kafka connectivity
+  healthCheckIntervalSeconds: 60
+
+# Example configurations for different scenarios:
+
+# Minimal configuration (PostgreSQL, local Kafka, no security):
+#
+# schemaVersion: 1
+# database:
+#   type: POSTGRESQL
+#   host: localhost
+#   port: 5432
+#   database: mydb
+#   username: cdcuser
+#   password: ${DB_PASSWORD}
+# tables:
+#   - name: public.orders
+#   - name: public.customers
+# kafka:
+#   brokers:
+#     - localhost:9092
+#   topicPattern: "cdc.{database}.{table}"
+
+# Production configuration (MySQL, secured Kafka):
+#
+# schemaVersion: 1
+# database:
+#   type: MYSQL
+#   host: mysql-prod.internal
+#   port: 3306
+#   database: production_db
+#   username: cdc_service_account
+#   password: ${DB_PASSWORD}
+#   ssl:
+#     enabled: true
+#     mode: VERIFY_FULL
+#     caCertPath: /certs/mysql-ca.crt
+# tables:
+#   - name: orders
+#     includeMode: EXCLUDE_SPECIFIED
+#     columnFilter: [internal_notes, discount_code]
+#   - name: customers
+#     includeMode: EXCLUDE_SPECIFIED
+#     columnFilter: [password_hash, ssn, credit_card]
+# kafka:
+#   brokers:
+#     - kafka-1.prod.internal:9093
+#     - kafka-2.prod.internal:9093
+#     - kafka-3.prod.internal:9093
+#   topicPattern: "prod.cdc.{database}.{table}"
+#   security:
+#     protocol: SASL_SSL
+#     mechanism: SCRAM-SHA-512
+#     username: cdc-producer
+#     password: ${KAFKA_PASSWORD}
+#     truststore:
+#       path: /certs/kafka.truststore.jks
+#       password: ${TRUSTSTORE_PASSWORD}
+#   producerProperties:
+#     acks: "all"
+#     compression.type: "zstd"
+#     linger.ms: 50
+#     batch.size: 32768
+# refresh:
+#   enabled: true
+#   intervalMinutes: 5
+# monitoring:
+#   metricsEnabled: true
+#   retentionHours: 168  # 7 days
+#   healthCheckIntervalSeconds: 30

@@ -1,0 +1,507 @@
+openapi: 3.0.3
+info:
+  title: Debezium CDC Management API
+  description: Management and monitoring API for Debezium CDC application
+  version: 1.0.0
+  contact:
+    name: CDC Team
+    email: cdc-team@chubb.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+  - url: https://cdc-{environment}.chubb.com/api/v1
+    description: Deployed environment
+    variables:
+      environment:
+        default: dev
+        enum:
+          - dev
+          - staging
+          - prod
+
+tags:
+  - name: health
+    description: Health check endpoints
+  - name: metrics
+    description: CDC capture metrics and statistics
+  - name: configuration
+    description: Configuration status and management
+
+paths:
+  /cdc/health:
+    get:
+      tags:
+        - health
+      summary: Get overall CDC application health
+      operationId: getHealth
+      responses:
+        '200':
+          description: Health status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatusDTO'
+              example:
+                overallState: UP
+                databaseHealth:
+                  state: UP
+                  message: "Connected to PostgreSQL at localhost:5432"
+                  checkedAt: "2025-11-01T10:30:00Z"
+                  connectionTime: "PT0.045S"
+                kafkaHealth:
+                  state: UP
+                  message: "Connected to 3 Kafka brokers"
+                  checkedAt: "2025-11-01T10:30:00Z"
+                  availableBrokers: 3
+                engineHealth:
+                  state: UP
+                  message: "Capturing changes from 5 tables"
+                  checkedAt: "2025-11-01T10:30:00Z"
+                  isCapturing: true
+                  monitoredTables: 5
+                lastChecked: "2025-11-01T10:30:00Z"
+
+  /cdc/health/database:
+    get:
+      tags:
+        - health
+      summary: Check database connection health
+      operationId: getDatabaseHealth
+      responses:
+        '200':
+          description: Database health check successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseHealthDTO'
+        '503':
+          description: Database is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cdc/health/kafka:
+    get:
+      tags:
+        - health
+      summary: Check Kafka connection health
+      operationId: getKafkaHealth
+      responses:
+        '200':
+          description: Kafka health check successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaHealthDTO'
+        '503':
+          description: Kafka is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cdc/metrics:
+    get:
+      tags:
+        - metrics
+      summary: Get CDC capture metrics and statistics
+      operationId: getMetrics
+      parameters:
+        - name: periodMinutes
+          in: query
+          description: Time period in minutes to aggregate metrics
+          required: false
+          schema:
+            type: integer
+            default: 60
+            minimum: 1
+            maximum: 1440
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsDTO'
+
+  /cdc/metrics/tables:
+    get:
+      tags:
+        - metrics
+      summary: Get per-table capture statistics
+      operationId: getTableMetrics
+      responses:
+        '200':
+          description: Table metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TableMetricsDTO'
+
+  /cdc/config/status:
+    get:
+      tags:
+        - configuration
+      summary: Get current configuration status
+      operationId: getConfigStatus
+      responses:
+        '200':
+          description: Configuration status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigStatusDTO'
+
+  /cdc/config/tables:
+    get:
+      tags:
+        - configuration
+      summary: List currently monitored tables
+      operationId: getMonitoredTables
+      responses:
+        '200':
+          description: Monitored tables list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TableConfigDTO'
+
+  /cdc/config/refresh:
+    post:
+      tags:
+        - configuration
+      summary: Trigger manual configuration refresh
+      operationId: refreshConfiguration
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Configuration refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigRefreshResultDTO'
+        '500':
+          description: Configuration refresh failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cdc/offset/position:
+    get:
+      tags:
+        - metrics
+      summary: Get current CDC position/offset
+      operationId: getOffsetPosition
+      responses:
+        '200':
+          description: Offset position retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffsetPositionDTO'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatusDTO:
+      type: object
+      required:
+        - overallState
+        - databaseHealth
+        - kafkaHealth
+        - engineHealth
+        - lastChecked
+      properties:
+        overallState:
+          type: string
+          enum: [UP, DOWN, DEGRADED, UNKNOWN]
+        databaseHealth:
+          $ref: '#/components/schemas/DatabaseHealthDTO'
+        kafkaHealth:
+          $ref: '#/components/schemas/KafkaHealthDTO'
+        engineHealth:
+          $ref: '#/components/schemas/CdcEngineHealthDTO'
+        lastChecked:
+          type: string
+          format: date-time
+
+    DatabaseHealthDTO:
+      type: object
+      required:
+        - state
+        - message
+        - checkedAt
+      properties:
+        state:
+          type: string
+          enum: [UP, DOWN, DEGRADED, UNKNOWN]
+        message:
+          type: string
+        checkedAt:
+          type: string
+          format: date-time
+        connectionTime:
+          type: string
+          description: ISO-8601 duration
+          example: "PT0.045S"
+        errorMessage:
+          type: string
+
+    KafkaHealthDTO:
+      type: object
+      required:
+        - state
+        - message
+        - checkedAt
+        - availableBrokers
+      properties:
+        state:
+          type: string
+          enum: [UP, DOWN, DEGRADED, UNKNOWN]
+        message:
+          type: string
+        checkedAt:
+          type: string
+          format: date-time
+        availableBrokers:
+          type: integer
+          minimum: 0
+        errorMessage:
+          type: string
+
+    CdcEngineHealthDTO:
+      type: object
+      required:
+        - state
+        - message
+        - checkedAt
+        - isCapturing
+        - monitoredTables
+      properties:
+        state:
+          type: string
+          enum: [UP, DOWN, DEGRADED, UNKNOWN]
+        message:
+          type: string
+        checkedAt:
+          type: string
+          format: date-time
+        isCapturing:
+          type: boolean
+        monitoredTables:
+          type: integer
+          minimum: 0
+        errorMessage:
+          type: string
+
+    MetricsDTO:
+      type: object
+      required:
+        - eventsCaptured
+        - eventsPublished
+        - eventsFailed
+        - periodStart
+        - periodEnd
+      properties:
+        eventsCaptured:
+          type: integer
+          format: int64
+        eventsPublished:
+          type: integer
+          format: int64
+        eventsFailed:
+          type: integer
+          format: int64
+        captureLatencyP50:
+          type: string
+          description: Median capture latency (ISO-8601 duration)
+          example: "PT0.5S"
+        captureLatencyP95:
+          type: string
+          description: 95th percentile capture latency
+          example: "PT2.3S"
+        captureLatencyP99:
+          type: string
+          description: 99th percentile capture latency
+          example: "PT4.8S"
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+
+    TableMetricsDTO:
+      type: object
+      required:
+        - table
+        - insertCount
+        - updateCount
+        - deleteCount
+      properties:
+        table:
+          $ref: '#/components/schemas/TableIdentifierDTO'
+        insertCount:
+          type: integer
+          format: int64
+        updateCount:
+          type: integer
+          format: int64
+        deleteCount:
+          type: integer
+          format: int64
+        lastEventTimestamp:
+          type: string
+          format: date-time
+        lastPosition:
+          type: object
+          additionalProperties: true
+
+    TableIdentifierDTO:
+      type: object
+      required:
+        - database
+        - table
+      properties:
+        database:
+          type: string
+        schema:
+          type: string
+          nullable: true
+        table:
+          type: string
+
+    ConfigStatusDTO:
+      type: object
+      required:
+        - loadedAt
+        - source
+        - monitoredTablesCount
+        - databaseType
+      properties:
+        loadedAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          description: Configuration file path or source
+        lastModified:
+          type: string
+          format: date-time
+        monitoredTablesCount:
+          type: integer
+        databaseType:
+          type: string
+          enum: [POSTGRESQL, MYSQL, SQLSERVER, ORACLE]
+        kafkaBrokers:
+          type: array
+          items:
+            type: string
+
+    TableConfigDTO:
+      type: object
+      required:
+        - table
+        - includeMode
+      properties:
+        table:
+          $ref: '#/components/schemas/TableIdentifierDTO'
+        includeMode:
+          type: string
+          enum: [INCLUDE_ALL, EXCLUDE_SPECIFIED]
+        columnFilter:
+          type: array
+          items:
+            type: string
+        compositeKey:
+          type: object
+          properties:
+            columnNames:
+              type: array
+              items:
+                type: string
+
+    ConfigRefreshResultDTO:
+      type: object
+      required:
+        - success
+        - timestamp
+        - changesDetected
+      properties:
+        success:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+        changesDetected:
+          type: boolean
+        addedTables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableIdentifierDTO'
+        removedTables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableIdentifierDTO'
+        errorMessage:
+          type: string
+
+    OffsetPositionDTO:
+      type: object
+      required:
+        - sourcePartition
+        - offset
+      properties:
+        sourcePartition:
+          type: string
+        offset:
+          type: object
+          additionalProperties: true
+          description: Opaque offset data (database-specific)
+
+    ErrorResponse:
+      type: object
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
+        - correlationId
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        correlationId:
+          type: string
+          format: uuid
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
