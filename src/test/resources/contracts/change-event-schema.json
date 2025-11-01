@@ -1,0 +1,238 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cdc.chubb.com/schemas/change-event/v1.json",
+  "title": "CDC Change Event",
+  "description": "Normalized change data capture event published to Kafka",
+  "type": "object",
+  "required": ["table", "operation", "timestamp", "position", "metadata"],
+  "properties": {
+    "table": {
+      "type": "object",
+      "description": "Identifies the source table for this change event",
+      "required": ["database", "table"],
+      "properties": {
+        "database": {
+          "type": "string",
+          "description": "Source database name",
+          "minLength": 1,
+          "example": "mydb"
+        },
+        "schema": {
+          "type": ["string", "null"],
+          "description": "Schema name (may be null for databases without schema concept like MySQL)",
+          "example": "public"
+        },
+        "table": {
+          "type": "string",
+          "description": "Table name",
+          "minLength": 1,
+          "example": "orders"
+        }
+      }
+    },
+    "operation": {
+      "type": "string",
+      "description": "Type of database operation",
+      "enum": ["INSERT", "UPDATE", "DELETE"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event capture timestamp in ISO-8601 format (UTC)",
+      "example": "2025-11-01T10:30:00Z"
+    },
+    "position": {
+      "type": "object",
+      "description": "CDC position/offset for this event (enables recovery)",
+      "required": ["sourcePartition", "offset"],
+      "properties": {
+        "sourcePartition": {
+          "type": "string",
+          "description": "Identifies the source database/connector instance",
+          "example": "server1-mydb"
+        },
+        "offset": {
+          "type": "object",
+          "description": "Opaque offset data (database-specific: LSN for PostgreSQL, binlog position for MySQL)",
+          "additionalProperties": true,
+          "examples": [
+            {"lsn": "0/12345678", "timestamp": 1234567890},
+            {"file": "mysql-bin.000003", "pos": 12345, "timestamp": 1234567890}
+          ]
+        }
+      }
+    },
+    "before": {
+      "type": ["object", "null"],
+      "description": "Row data before the change (null for INSERT, present for UPDATE and DELETE)",
+      "additionalProperties": true,
+      "example": {
+        "order_id": 123,
+        "status": "PENDING",
+        "created_at": "2025-11-01T10:00:00Z",
+        "updated_at": "2025-11-01T10:00:00Z"
+      }
+    },
+    "after": {
+      "type": ["object", "null"],
+      "description": "Row data after the change (null for DELETE, present for INSERT and UPDATE)",
+      "additionalProperties": true,
+      "example": {
+        "order_id": 123,
+        "status": "CONFIRMED",
+        "created_at": "2025-11-01T10:00:00Z",
+        "updated_at": "2025-11-01T10:30:00Z"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata about the change event",
+      "required": ["source", "version"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Identifier for the CDC application instance",
+          "example": "debezium-cdc-app"
+        },
+        "version": {
+          "type": "string",
+          "description": "CDC application version",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "example": "1.0.0"
+        },
+        "connector": {
+          "type": "string",
+          "description": "Database connector type",
+          "enum": ["postgres", "mysql", "sqlserver", "oracle"],
+          "example": "postgres"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "description": "Schema version for this event format",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "oneOf": [
+    {
+      "description": "INSERT event: before must be null, after must be present",
+      "properties": {
+        "operation": {"const": "INSERT"},
+        "before": {"type": "null"},
+        "after": {"type": "object"}
+      }
+    },
+    {
+      "description": "UPDATE event: both before and after must be present",
+      "properties": {
+        "operation": {"const": "UPDATE"},
+        "before": {"type": "object"},
+        "after": {"type": "object"}
+      }
+    },
+    {
+      "description": "DELETE event: before must be present, after must be null",
+      "properties": {
+        "operation": {"const": "DELETE"},
+        "before": {"type": "object"},
+        "after": {"type": "null"}
+      }
+    }
+  ],
+  "examples": [
+    {
+      "table": {
+        "database": "mydb",
+        "schema": "public",
+        "table": "orders"
+      },
+      "operation": "INSERT",
+      "timestamp": "2025-11-01T10:30:00Z",
+      "position": {
+        "sourcePartition": "server1-mydb",
+        "offset": {"lsn": "0/12345678", "timestamp": 1730460600}
+      },
+      "before": null,
+      "after": {
+        "order_id": 123,
+        "customer_id": 456,
+        "status": "PENDING",
+        "total_amount": 99.99,
+        "created_at": "2025-11-01T10:30:00Z",
+        "updated_at": "2025-11-01T10:30:00Z"
+      },
+      "metadata": {
+        "source": "debezium-cdc-app",
+        "version": "1.0.0",
+        "connector": "postgres",
+        "schemaVersion": 1
+      }
+    },
+    {
+      "table": {
+        "database": "mydb",
+        "schema": "public",
+        "table": "orders"
+      },
+      "operation": "UPDATE",
+      "timestamp": "2025-11-01T11:00:00Z",
+      "position": {
+        "sourcePartition": "server1-mydb",
+        "offset": {"lsn": "0/12345700", "timestamp": 1730462400}
+      },
+      "before": {
+        "order_id": 123,
+        "customer_id": 456,
+        "status": "PENDING",
+        "total_amount": 99.99,
+        "created_at": "2025-11-01T10:30:00Z",
+        "updated_at": "2025-11-01T10:30:00Z"
+      },
+      "after": {
+        "order_id": 123,
+        "customer_id": 456,
+        "status": "CONFIRMED",
+        "total_amount": 99.99,
+        "created_at": "2025-11-01T10:30:00Z",
+        "updated_at": "2025-11-01T11:00:00Z"
+      },
+      "metadata": {
+        "source": "debezium-cdc-app",
+        "version": "1.0.0",
+        "connector": "postgres",
+        "schemaVersion": 1
+      }
+    },
+    {
+      "table": {
+        "database": "mydb",
+        "schema": "public",
+        "table": "orders"
+      },
+      "operation": "DELETE",
+      "timestamp": "2025-11-01T12:00:00Z",
+      "position": {
+        "sourcePartition": "server1-mydb",
+        "offset": {"lsn": "0/12345800", "timestamp": 1730466000}
+      },
+      "before": {
+        "order_id": 123,
+        "customer_id": 456,
+        "status": "CANCELLED",
+        "total_amount": 99.99,
+        "created_at": "2025-11-01T10:30:00Z",
+        "updated_at": "2025-11-01T11:30:00Z"
+      },
+      "after": null,
+      "metadata": {
+        "source": "debezium-cdc-app",
+        "version": "1.0.0",
+        "connector": "postgres",
+        "schemaVersion": 1
+      }
+    }
+  ]
+}
