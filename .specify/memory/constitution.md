@@ -2,68 +2,87 @@
 SYNC IMPACT REPORT
 ==================
 
-Version Change: 1.1.0 → 1.1.1
-Change Type: PATCH (technology stack clarification and deployment requirements)
+Version Change: 1.1.1 → 1.1.2
+Change Type: PATCH (build tool standardization, design patterns, logging, REST conventions)
 Date: 2025-11-01
 
 Modified Sections:
-  - Development Standards > Technology Stack (CLARIFIED):
-    - **Framework**: Spring Boot 3.x specified as mandatory framework (was generic)
-      - Added Spring-specific guidance (starters, DI boundaries, Actuator)
-      - Emphasized domain layer must remain Spring-annotation-free
-    - **Database Options**: Specified three approved databases with guidance:
-      - PostgreSQL (preferred for relational data)
-      - MongoDB (for document-oriented data)
-      - Microsoft SQL Server (for MSSQL infrastructure integration)
-      - Polyglot persistence allowed per bounded context if justified
-    - **Build & Deployment**: Added comprehensive containerization and orchestration requirements:
-      - Docker mandatory with multi-stage builds
-      - Java 21 base images specified (eclipse-temurin:21-jre-alpine)
-      - Kubernetes mandatory for production deployment
-      - ConfigMaps/Secrets, health checks, resource limits required
-    - **Testing**: Added Testcontainers for database integration tests
-    - **Logging**: Specified Logback as Spring Boot default with structured JSON for production
+  - Development Standards > Technology Stack (UPDATED):
+    - **Build Tool**: Maven specified as MANDATORY (was Maven or Gradle)
+      - Added Maven-specific requirements: profiles, dependencyManagement, Maven Wrapper
+      - Removed Gradle as an option for consistency across projects
 
-  - Development Standards > Documentation Requirements (EXPANDED):
-    - Added deployment documentation requirements:
-      - Dockerfile with commented build stages (mandatory)
-      - docker-compose.yml for local development (mandatory)
-      - Kubernetes manifests in k8s/ directory (mandatory)
-      - .env.example for environment variables (mandatory)
+    - **Logging Standards**: MAJOR EXPANSION from brief mention to comprehensive standards
+      - Added detailed log level definitions (ERROR, WARN, INFO, DEBUG, TRACE)
+      - Added structured logging requirements (JSON format, mandatory fields, MDC)
+      - Added explicit "What to Log" guidance (business events, API calls, slow queries)
+      - Added explicit "What NOT to Log" (sensitive data, large payloads)
+      - Added log context requirements (correlation IDs, TraceId/SpanId)
+      - Added configuration standards (file separation, rotation, retention)
 
-  - Quality Gates (EXPANDED):
-    - Added Gate 5: Containerization & Deployment
-      - Docker image builds successfully
-      - Image size optimization verified
-      - Container health checks validated
-      - Kubernetes manifests validated (kubectl dry-run)
-      - Environment variables documented
+  - Development Standards > NEW SECTIONS:
+    - **Design Patterns for Maintainability & Extensibility** (NEW):
+      - Creational patterns: Factory, Builder (with Lombok), avoid Singleton
+      - Structural patterns: Adapter (mandatory for external integrations), Decorator, Facade, Repository (mandatory)
+      - Behavioral patterns: Strategy, Template Method, Observer, Chain of Responsibility, Command
+      - DDD Tactical Patterns: Entity, Value Object, Aggregate, Repository, Domain/Application Services, Domain Events
+      - Anti-patterns to avoid: God Object, Anemic Domain Model, Transaction Script, Big Ball of Mud
+
+    - **REST API Conventions** (NEW):
+      - Resource naming conventions (plural nouns, hierarchical paths, lowercase-with-hyphens)
+      - HTTP method semantics (GET, POST, PUT, PATCH, DELETE with idempotency rules)
+      - HTTP status code standards (2xx, 4xx, 5xx with specific codes)
+      - Request/response format standards (application/json, error response structure with correlationId)
+      - Pagination conventions (query parameters, metadata in response)
+      - Filtering & searching patterns
+      - API versioning strategy (URI versioning: /api/v1/)
+      - Security requirements (JWT, CORS, rate limiting)
+      - OpenAPI 3.0 documentation requirements
+
+  - Quality Gates > Code Review (EXPANDED):
+    - Added design pattern review (appropriate application, no anti-patterns)
+    - Added REST API conventions check (if REST endpoints present)
+    - Added logging standards check (proper levels, structured logging, no sensitive data)
 
 Modified Templates:
-  - plan-template.md (UPDATED):
-    - Spring Boot 3.x specified as default framework
-    - Database selection with three approved options
-    - Containerization details (Docker base image, docker-compose)
-    - Kubernetes orchestration requirements (deployment strategy, ingress)
-    - Added deployment files to project structure (Dockerfile, k8s/, .env.example)
-    - Added Testcontainers to testing stack
+  - plan-template.md (MAJOR UPDATE):
+    - Build Tool: Changed from "[Maven | Gradle - document choice]" to "Maven [mandatory]"
+    - Added Maven Wrapper and profiles to requirements
+    - Added API documentation dependencies (springdoc-openapi mandatory for REST)
+    - Added structured logging dependencies (logstash-logback-encoder)
+    - Added "Constitution Check" section with detailed checklist (10 items)
+    - Added "REST API Design" section (NEW) with:
+      - Endpoint table template (method, path, description, request/response, status codes)
+      - Error handling conventions
+      - Security configuration
+      - OpenAPI documentation requirements
+    - Expanded project structure to include:
+      - Maven Wrapper files (mvnw, mvnw.cmd, .mvn/)
+      - Configuration files (application.yml per profile, logback-spring.xml)
+      - Database migration directory
 
 Principles Changed: None
-Added Sections: None
+Added Sections:
+  - Design Patterns for Maintainability & Extensibility
+  - REST API Conventions
+  - Logging Standards (major expansion)
+
 Removed Sections: None
 
 Templates Status:
-  ✅ plan-template.md - UPDATED with Spring Boot, database options, Docker/Kubernetes
+  ✅ plan-template.md - UPDATED with Maven, REST API design section, Constitution Check checklist, Maven Wrapper, config files
   ✅ spec-template.md - User scenarios align with testing principles (no changes needed)
   ✅ tasks-template.md - Previously updated for mandatory TDD (no additional changes)
   ✅ Commands - Validated, no agent-specific references found
 
 Follow-up TODOs:
-  - Consider creating example Dockerfile with multi-stage build
-  - Consider creating example docker-compose.yml with PostgreSQL/MongoDB/MSSQL options
-  - Consider creating example Kubernetes manifests (base + overlays)
-  - Consider creating ArchUnit test examples
-  - Document Spring Boot + Clean Architecture integration patterns
+  - Create example pom.xml with Spring Boot, dependencies, profiles
+  - Create example logback-spring.xml with JSON encoder for production
+  - Create example REST error handler with standard error response format
+  - Create design pattern examples for common scenarios (Factory, Strategy, Repository)
+  - Create OpenAPI configuration class example
+  - Create example ArchUnit tests for pattern enforcement
+  - Document correlation ID propagation across services
 -->
 
 # CDC Chubb POC Constitution
@@ -190,7 +209,11 @@ Architecture and domain modeling MUST follow these principles:
   - **Multi-Database**: Polyglot persistence allowed per bounded context if justified
 
 - **Build & Deployment**:
-  - **Build Tool**: Maven or Gradle (document choice in README, include Spring Boot plugin)
+  - **Build Tool**: Maven (mandatory) - use Spring Boot Maven plugin
+    - Standard directory structure: `src/main/java`, `src/main/resources`, `src/test/java`
+    - Use Maven profiles for different environments (dev, test, prod)
+    - Dependency management via `<dependencyManagement>` for version consistency
+    - Use Maven Wrapper (mvnw) for build reproducibility
   - **Containerization**: Docker mandatory - all services must be containerizable
     - Multi-stage builds to minimize image size
     - Use official Java 21 base images (eclipse-temurin:21-jre-alpine or similar)
@@ -202,7 +225,37 @@ Architecture and domain modeling MUST follow these principles:
     - Resource limits (CPU, memory) must be defined
 
 - **Testing**: JUnit 5, AssertJ, Mockito, ArchUnit (for architecture validation), Testcontainers (for integration tests with real databases)
-- **Logging**: SLF4J with Logback (Spring Boot default) - structured JSON logging for production
+
+- **Logging Standards** (SLF4J with Logback - Spring Boot default):
+  - **Log Levels**:
+    - **ERROR**: System errors, exceptions requiring immediate attention
+    - **WARN**: Unexpected situations that don't prevent operation (deprecated API usage, poor configuration)
+    - **INFO**: Significant business events, startup/shutdown, configuration changes
+    - **DEBUG**: Detailed flow information for troubleshooting (disabled in production)
+    - **TRACE**: Very detailed diagnostic information (disabled in production)
+
+  - **Structured Logging**:
+    - Use **JSON format** in production for log aggregation (Logstash, ELK, Splunk)
+    - Include mandatory fields: `timestamp`, `level`, `logger`, `message`, `thread`, `correlationId`
+    - Use MDC (Mapped Diagnostic Context) for request-scoped data (userId, sessionId, traceId)
+    - Example: `log.info("Order placed successfully", kv("orderId", orderId), kv("userId", userId))`
+
+  - **What to Log**:
+    - MUST log: API requests/responses (with correlation ID), business events, exceptions with stack traces
+    - MUST NOT log: Sensitive data (passwords, tokens, PII), large payloads (>1KB - log reference/summary)
+    - Database queries: Log slow queries (>100ms) at WARN level
+    - External service calls: Log all outbound requests with latency
+
+  - **Log Context**:
+    - Every log entry must have a correlation ID for request tracing
+    - Use Spring Boot's `TraceId`/`SpanId` from Micrometer Tracing (Sleuth successor)
+    - Log request entry/exit at service boundaries (controllers, message consumers)
+
+  - **Configuration**:
+    - Separate log files by concern: `application.log`, `error.log`, `audit.log`
+    - Configure log rotation (daily or 100MB max per file)
+    - Retain logs for minimum 30 days (adjust per compliance requirements)
+    - Console output for local development, JSON file output for production
 
 ### Code Organization
 
@@ -241,6 +294,113 @@ Architecture and domain modeling MUST follow these principles:
   - Presentation depends on: Application (not Infrastructure directly)
 
 - **Namespace Clarity**: Package names must reflect both layer and purpose (e.g., `domain.model.order`, `application.usecase.placeorder`)
+
+### Design Patterns for Maintainability & Extensibility
+
+Code MUST apply established design patterns to ensure maintainability and extensibility:
+
+- **Creational Patterns**:
+  - **Factory Pattern**: Use for complex object creation, especially Aggregates with validation rules
+  - **Builder Pattern**: Use for objects with many optional parameters (prefer Records with `@Builder` from Lombok)
+  - **Singleton**: Avoid - use Spring's dependency injection with `@Bean` scopes instead
+
+- **Structural Patterns**:
+  - **Adapter Pattern**: MANDATORY for external integrations (Anti-Corruption Layer in DDD)
+  - **Decorator Pattern**: Use for cross-cutting concerns when AOP is not appropriate
+  - **Facade Pattern**: Use to simplify complex subsystem interactions (e.g., payment processing with multiple steps)
+  - **Repository Pattern**: MANDATORY for data access (defined in domain, implemented in infrastructure)
+
+- **Behavioral Patterns**:
+  - **Strategy Pattern**: Use for interchangeable algorithms (e.g., pricing strategies, payment methods)
+  - **Template Method Pattern**: Use for invariant workflows with customizable steps
+  - **Observer Pattern**: Use for domain events (Spring's ApplicationEventPublisher)
+  - **Chain of Responsibility**: Use for validation pipelines, request processing
+  - **Command Pattern**: Use for use cases in application layer (Command/CommandHandler)
+
+- **DDD Tactical Patterns** (see Principle VI):
+  - **Entity**: Objects with identity and lifecycle
+  - **Value Object**: Immutable objects compared by value (use Java Records)
+  - **Aggregate**: Consistency boundary with root entity
+  - **Repository**: Persistence abstraction for Aggregates
+  - **Domain Service**: Stateless operations that don't belong to a single Entity
+  - **Application Service**: Use case orchestration (coordinates domain objects)
+  - **Domain Event**: Publish significant business occurrences
+
+- **Anti-Patterns to Avoid**:
+  - **God Object**: Classes with too many responsibilities (use SRP - Single Responsibility Principle)
+  - **Anemic Domain Model**: Domain objects with only getters/setters, no behavior
+  - **Transaction Script**: All logic in service methods without domain model
+  - **Big Ball of Mud**: No clear architecture boundaries (enforce with ArchUnit)
+
+**Rationale**: Consistent use of proven patterns makes code predictable, easier to understand, test, and extend. Patterns provide a shared vocabulary for the team.
+
+### REST API Conventions
+
+All REST APIs MUST follow these conventions:
+
+- **Resource Naming**:
+  - Use plural nouns for collections: `/orders`, `/customers`, `/products`
+  - Use hierarchical paths for relationships: `/orders/{orderId}/items`
+  - Use lowercase with hyphens for multi-word resources: `/shipping-addresses`
+  - Avoid verbs in URIs (use HTTP methods instead): ❌ `/createOrder` → ✅ `POST /orders`
+
+- **HTTP Methods** (standard CRUD operations):
+  - **GET**: Retrieve resource(s) - must be idempotent and safe (no side effects)
+  - **POST**: Create new resource - returns `201 Created` with `Location` header
+  - **PUT**: Replace entire resource - must be idempotent
+  - **PATCH**: Partial update of resource - use for selective field updates
+  - **DELETE**: Remove resource - must be idempotent, returns `204 No Content` on success
+
+- **HTTP Status Codes** (use standard codes):
+  - **2xx Success**: `200 OK`, `201 Created`, `204 No Content`
+  - **4xx Client Errors**: `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`
+  - **5xx Server Errors**: `500 Internal Server Error`, `503 Service Unavailable`
+
+- **Request/Response Format**:
+  - **Content-Type**: Use `application/json` for request/response bodies
+  - **Request Validation**: Return `400 Bad Request` with detailed error messages for invalid input
+  - **Error Response Format**:
+    ```json
+    {
+      "timestamp": "2025-11-01T10:30:00Z",
+      "status": 400,
+      "error": "Bad Request",
+      "message": "Validation failed",
+      "path": "/orders",
+      "correlationId": "abc-123-def",
+      "errors": [
+        {"field": "quantity", "message": "must be greater than 0"}
+      ]
+    }
+    ```
+
+- **Pagination** (for collections):
+  - Use query parameters: `?page=0&size=20&sort=createdAt,desc`
+  - Response must include metadata: `totalElements`, `totalPages`, `size`, `number`
+  - Use Spring Data's `Pageable` and `Page<T>` abstractions
+
+- **Filtering & Searching**:
+  - Use query parameters for filtering: `/orders?status=PENDING&customerId=123`
+  - Use `/search` endpoint for complex queries: `POST /orders/search` with search criteria in body
+
+- **Versioning**:
+  - Use URI versioning: `/api/v1/orders`, `/api/v2/orders`
+  - Never break backward compatibility within a version
+  - Deprecation notice required before removing endpoints (one version warning period)
+
+- **Security**:
+  - All endpoints require authentication (except public endpoints explicitly documented)
+  - Use JWT tokens with Bearer scheme: `Authorization: Bearer <token>`
+  - CORS configuration must be explicit (no wildcard `*` in production)
+  - Rate limiting must be implemented (e.g., 100 requests/minute per client)
+
+- **Documentation**:
+  - Use OpenAPI 3.0 (Swagger) for API documentation
+  - Include examples for all request/response payloads
+  - Document error responses with status codes
+  - Use `@Operation`, `@ApiResponse` annotations in controllers
+
+**Rationale**: Consistent REST conventions make APIs predictable and easy to consume. Following HTTP standards enables proper caching, error handling, and client tooling.
 
 ### Versioning & Breaking Changes
 
@@ -294,6 +454,9 @@ All code changes MUST pass these gates before merging:
    - Complexity justifications reviewed and approved
    - Documentation completeness verified
    - No security vulnerabilities (OWASP Top 10 checks)
+   - Design patterns appropriately applied (no anti-patterns)
+   - REST API conventions followed (if REST endpoints present)
+   - Logging standards adhered to (proper levels, structured logging, no sensitive data)
 
 4. **Build & Integration**:
    - Clean build with no warnings
@@ -332,4 +495,4 @@ All code changes MUST pass these gates before merging:
 - Outdated or impractical principles must be amended, not ignored
 - Principles found to harm productivity must be revised, not worked around
 
-**Version**: 1.1.1 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01
+**Version**: 1.1.2 | **Ratified**: 2025-11-01 | **Last Amended**: 2025-11-01

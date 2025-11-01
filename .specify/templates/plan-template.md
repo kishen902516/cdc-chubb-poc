@@ -22,10 +22,14 @@
 **Architecture Style**: Clean Architecture + DDD [default per constitution Principle VI]
 **Database**: [PostgreSQL (preferred) | MongoDB | Microsoft SQL Server - choose based on data requirements]
 **Primary Dependencies**:
-  - Spring Boot Starters: [e.g., spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-security]
-  - Additional: [e.g., Spring Cloud, Lombok, MapStruct or NEEDS CLARIFICATION]
+  - Spring Boot Starters: [e.g., spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-security, spring-boot-starter-validation]
+  - API Documentation: springdoc-openapi (OpenAPI 3.0/Swagger) [mandatory for REST APIs]
+  - Logging: logback with logstash-logback-encoder [for structured JSON logging]
+  - Additional: [e.g., Spring Cloud, Lombok, MapStruct, Micrometer for metrics or NEEDS CLARIFICATION]
 **Testing**: JUnit 5, AssertJ, Mockito, ArchUnit, Testcontainers [default per constitution]
-**Build Tool**: [Maven | Gradle - document choice and include Spring Boot plugin]
+**Build Tool**: Maven with Spring Boot Maven Plugin [mandatory per constitution]
+  - Maven Wrapper (mvnw) for reproducible builds
+  - Maven profiles: dev, test, prod
 **Containerization**: Docker [mandatory per constitution]
   - Base Image: [e.g., eclipse-temurin:21-jre-alpine]
   - Additional Tools: [e.g., docker-compose for local development]
@@ -42,7 +46,48 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] Library-first architecture verified
+- [ ] CLI interface present and functional (Principle II)
+- [ ] Test-First Development plan in place (tests written before implementation)
+- [ ] Contract and integration tests planned (Principle IV)
+- [ ] Clean Architecture layers defined (domain, application, infrastructure, presentation)
+- [ ] Domain layer has no framework dependencies
+- [ ] Design patterns identified for key components (Factory, Strategy, Repository, etc.)
+- [ ] REST API conventions planned (if REST endpoints) - resource naming, HTTP methods, status codes
+- [ ] Logging standards defined - structured JSON, correlation IDs, MDC context
+- [ ] ArchUnit tests planned for architecture validation
+
+## REST API Design (if applicable)
+
+*Complete this section if the feature exposes REST APIs*
+
+**Base Path**: `/api/v1/[resource-name]` [follow URI versioning convention]
+
+**Resources & Endpoints**:
+| Method | Path | Description | Request Body | Response | Status Codes |
+|--------|------|-------------|--------------|----------|--------------|
+| GET | `/orders` | List all orders (paginated) | None | `Page<OrderDTO>` | 200 |
+| GET | `/orders/{id}` | Get order by ID | None | `OrderDTO` | 200, 404 |
+| POST | `/orders` | Create new order | `CreateOrderRequest` | `OrderDTO` | 201, 400 |
+| PUT | `/orders/{id}` | Replace order | `UpdateOrderRequest` | `OrderDTO` | 200, 404 |
+| PATCH | `/orders/{id}` | Partially update | `PatchOrderRequest` | `OrderDTO` | 200, 404 |
+| DELETE | `/orders/{id}` | Delete order | None | None | 204, 404 |
+
+**Error Handling**:
+- All errors return standard error response format with `correlationId`
+- Validation errors: 400 with field-level error details
+- Not found errors: 404 with resource identifier
+- Business rule violations: 422 with business error code
+
+**Security**:
+- Authentication: [JWT Bearer tokens | OAuth2 | API Keys]
+- Authorization: [Role-based | Permission-based | Resource-based]
+- Rate limiting: [e.g., 100 requests/minute per client]
+
+**OpenAPI Documentation**:
+- Use `@Operation`, `@ApiResponse`, `@Schema` annotations
+- Include request/response examples
+- Document all error scenarios
 
 ## Project Structure
 
@@ -128,8 +173,20 @@ k8s/                                # Kubernetes manifests
 ├── staging/                        # Staging-specific overlays
 └── prod/                           # Production-specific overlays
 
-# Build files
-pom.xml or build.gradle             # Maven/Gradle build configuration with Spring Boot plugin
+# Build files (mandatory per constitution)
+pom.xml                             # Maven build with Spring Boot plugin
+mvnw, mvnw.cmd                      # Maven Wrapper for reproducible builds
+.mvn/                               # Maven Wrapper configuration
+
+# Configuration files
+src/main/resources/
+├── application.yml                 # Main configuration (use YAML over properties)
+├── application-dev.yml             # Development profile
+├── application-test.yml            # Test profile
+├── application-prod.yml            # Production profile
+├── logback-spring.xml              # Logging configuration (structured JSON for prod)
+└── db/migration/                   # Database migrations (Flyway or Liquibase)
+
 README.md                           # Project documentation (mandatory per constitution)
 
 # [REMOVE IF UNUSED] Option 2: Web application with separate frontend/backend
