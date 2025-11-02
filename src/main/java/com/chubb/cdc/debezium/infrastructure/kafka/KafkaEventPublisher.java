@@ -126,6 +126,11 @@ public class KafkaEventPublisher implements EventPublisher {
                 CompletableFuture<SendResult<String, String>> future =
                     kafkaTemplate.send(topicName, key, payload);
 
+                // Handle null future (shouldn't happen but defensive check)
+                if (future == null) {
+                    throw new IllegalStateException("KafkaTemplate.send() returned null - Kafka may not be properly initialized");
+                }
+
                 // Wait for send to complete (with timeout)
                 SendResult<String, String> result = future.get(30, TimeUnit.SECONDS);
 

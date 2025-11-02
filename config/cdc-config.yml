@@ -9,7 +9,7 @@ database:
   database: cdcdb
   username: cdcuser
   # Password should be provided via environment variable: DB_PASSWORD
-  password: ${DB_PASSWORD:cdcpassword}
+  password: cdcpassword
 
   # Optional SSL Configuration
   # ssl:

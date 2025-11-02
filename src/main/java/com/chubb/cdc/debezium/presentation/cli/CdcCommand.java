@@ -50,10 +50,28 @@ public class CdcCommand implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Debug: Log all received arguments
         log.info("CdcCommand.run() called with {} arguments: {}", args.length, Arrays.toString(args));
-        
-        // If no arguments, run as service (don't exit)
+
+        // If no arguments, run as service and auto-start CDC engine
         if (args.length == 0) {
             log.info("CDC application starting in service mode");
+            log.info("Auto-starting CDC engine in service mode...");
+            try {
+                handleStart();
+                // Add shutdown hook for graceful shutdown
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    log.info("Shutdown hook triggered, stopping CDC engine...");
+                    try {
+                        handleStop();
+                    } catch (Exception e) {
+                        log.error("Error during shutdown", e);
+                    }
+                }));
+                // Keep the service running
+                log.info("CDC service is running. Press Ctrl+C to stop.");
+                keepAlive();
+            } catch (Exception e) {
+                log.error("Failed to auto-start CDC engine in service mode", e);
+            }
             return;
         }
 
@@ -65,7 +83,19 @@ public class CdcCommand implements CommandLineRunner {
             switch (command) {
                 case "start":
                     handleStart();
-                    System.exit(0);
+                    // Keep the process running after starting the engine
+                    log.info("CDC engine is running. Press Ctrl+C to stop.");
+                    // Add shutdown hook to stop engine gracefully
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                        log.info("Shutdown hook triggered, stopping CDC engine...");
+                        try {
+                            handleStop();
+                        } catch (Exception e) {
+                            log.error("Error during shutdown", e);
+                        }
+                    }));
+                    // Keep the main thread alive
+                    keepAlive();
                     break;
 
                 case "stop":
@@ -209,6 +239,20 @@ public class CdcCommand implements CommandLineRunner {
         } catch (Exception e) {
             System.err.println("✗ Failed to retrieve status: " + e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Keep the main thread alive while the CDC engine is running.
+     * This prevents the JVM from exiting.
+     */
+    private void keepAlive() {
+        try {
+            // Keep the thread alive until interrupted
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            log.info("Main thread interrupted, shutting down...");
+            Thread.currentThread().interrupt();
         }
     }
 

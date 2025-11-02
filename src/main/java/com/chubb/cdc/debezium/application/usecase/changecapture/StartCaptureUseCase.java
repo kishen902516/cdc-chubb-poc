@@ -111,9 +111,12 @@ public class StartCaptureUseCase {
         for (TableConfig tableConfig : configuration.getTableConfigs()) {
             TableIdentifier table = tableConfig.table();
 
-            // Load the initial position for this table (or use null if starting fresh)
+            // Load the initial position for this table (or create default if starting fresh)
             var position = offsetRepository.load(sourcePartition)
-                    .orElse(null);
+                    .orElse(new CdcPosition(
+                            sourcePartition,
+                            java.util.Map.of("initial", true, "timestamp", System.currentTimeMillis())
+                    ));
 
             // Create and publish the event
             CaptureStartedEvent event = new CaptureStartedEvent(

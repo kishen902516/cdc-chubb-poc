@@ -65,7 +65,11 @@ public class PostgresConnectorStrategy implements ConnectorStrategy {
         props.setProperty("publication.name", DEFAULT_PUBLICATION_NAME);
 
         // Server identification for offset storage
-        props.setProperty("database.server.name", generateServerName(databaseConfig));
+        String serverName = generateServerName(databaseConfig);
+        props.setProperty("database.server.name", serverName);
+        
+        // Topic prefix - required by Debezium
+        props.setProperty("topic.prefix", serverName);
 
         // Table inclusion list (schema.table format for PostgreSQL)
         String tableIncludeList = buildTableIncludeList(tableConfigs);

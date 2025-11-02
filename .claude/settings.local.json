@@ -1,21 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
-      "Bash(mvn clean compile:*)",
-      "Bash(find:*)",
-      "Bash(test:*)",
-      "Bash(mvn test-compile:*)",
-      "Bash(1)",
-      "Bash(bash:*)",
-      "Bash(if [ -d \"C:/development/cdc/cdc-chubb-poc/specs/001-debezium-cdc-app/checklists\" ])",
-      "Bash(then find \"C:/development/cdc/cdc-chubb-poc/specs/001-debezium-cdc-app/checklists\" -name \"*.md\" -type f)",
-      "Bash(else echo \"No checklists directory\")",
-      "Bash(fi)",
-      "Bash(./mvnw clean:*)",
-      "Bash(mvn test:*)",
-      "Bash(dir targetsurefire-reports*ContractTest.txt 2)",
-      "Bash(nul)"
+      "Bash(java -jar target/debezium-cdc-app-1.0.0-SNAPSHOT.jar start:*)",
+      "Bash(cdc_startup.log)",
+      "Bash(cat:*)",
+      "Bash(java -Dlogging.level.root=DEBUG -Dlogging.level.org.springframework=DEBUG -jar target/debezium-cdc-app-1.0.0-SNAPSHOT.jar:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []
