@@ -8,10 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,22 +24,22 @@ import java.util.Map;
 @Configuration
 public class KafkaConfiguration {
 
-    @Value("${kafka.bootstrap-servers}")
-    private List<String> bootstrapServers;
+    @Value("${cdc.kafka.bootstrap-servers:localhost:9092}")
+    private String bootstrapServers;
 
-    @Value("${kafka.producer.acks:all}")
+    @Value("${cdc.kafka.producer.acks:all}")
     private String acks;
 
-    @Value("${kafka.producer.retries:3}")
+    @Value("${cdc.kafka.producer.retries:3}")
     private int retries;
 
-    @Value("${kafka.producer.batch-size:16384}")
+    @Value("${cdc.kafka.producer.batch-size:16384}")
     private int batchSize;
 
-    @Value("${kafka.producer.linger-ms:10}")
+    @Value("${cdc.kafka.producer.linger-ms:10}")
     private int lingerMs;
 
-    @Value("${kafka.producer.compression-type:snappy}")
+    @Value("${cdc.kafka.producer.compression-type:snappy}")
     private String compressionType;
 
     /**
@@ -52,14 +50,14 @@ public class KafkaConfiguration {
      *   <li>acks=all: Wait for all replicas to acknowledge</li>
      *   <li>retries=3: Retry failed sends up to 3 times</li>
      *   <li>idempotence=true: Prevent duplicate messages</li>
-     *   <li>JSON serialization: For change event DTOs</li>
+     *   <li>String serialization: For change event DTOs</li>
      *   <li>Compression: Reduce network bandwidth (snappy)</li>
      * </ul>
      *
      * @return producer factory for change events
      */
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
+    public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
 
         // Connection settings
@@ -67,7 +65,7 @@ public class KafkaConfiguration {
 
         // Serialization
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
         // Delivery guarantees
         configProps.put(ProducerConfig.ACKS_CONFIG, acks);
@@ -85,9 +83,6 @@ public class KafkaConfiguration {
         // Request timeout (30 seconds)
         configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
 
-        // JSON serializer configuration
-        configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
-
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
@@ -100,7 +95,7 @@ public class KafkaConfiguration {
      * @return Kafka template
      */
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate() {
+    public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
@@ -123,7 +118,7 @@ public class KafkaConfiguration {
      * Configuration properties for Kafka producer.
      */
     public record KafkaProducerConfig(
-        List<String> bootstrapServers,
+        String bootstrapServers,
         String acks,
         int retries,
         int batchSize,

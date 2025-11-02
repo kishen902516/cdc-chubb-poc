@@ -52,7 +52,7 @@ class ProcessChangeEventUseCaseTest {
 
     @Test
     @DisplayName("Should process INSERT event successfully")
-    void shouldProcessInsertEventSuccessfully() {
+    void shouldProcessInsertEventSuccessfully() throws Exception {
         // Given
         ChangeEvent insertEvent = createInsertEvent();
         RowData normalizedData = new RowData(Map.of(
@@ -67,14 +67,14 @@ class ProcessChangeEventUseCaseTest {
         useCase.execute(insertEvent, DatabaseType.POSTGRESQL);
 
         // Then
-        verify(dataNormalizer).normalize(insertEvent.after().fields());
+        verify(dataNormalizer).normalize(eq(insertEvent.after().fields()), any(DatabaseType.class));
         verify(eventPublisher).publish(any(ChangeEventDto.class));
         verify(offsetRepository).save(insertEvent.position());
     }
 
     @Test
     @DisplayName("Should process UPDATE event successfully")
-    void shouldProcessUpdateEventSuccessfully() {
+    void shouldProcessUpdateEventSuccessfully() throws Exception {
         // Given
         ChangeEvent updateEvent = createUpdateEvent();
         RowData normalizedBefore = new RowData(Map.of("status", "PENDING"));
@@ -94,7 +94,7 @@ class ProcessChangeEventUseCaseTest {
 
     @Test
     @DisplayName("Should process DELETE event successfully")
-    void shouldProcessDeleteEventSuccessfully() {
+    void shouldProcessDeleteEventSuccessfully() throws Exception {
         // Given
         ChangeEvent deleteEvent = createDeleteEvent();
         RowData normalizedBefore = new RowData(Map.of("order_id", 123));
@@ -105,14 +105,14 @@ class ProcessChangeEventUseCaseTest {
         useCase.execute(deleteEvent, DatabaseType.POSTGRESQL);
 
         // Then
-        verify(dataNormalizer).normalize(deleteEvent.before().fields());
+        verify(dataNormalizer).normalize(eq(deleteEvent.before().fields()), any(DatabaseType.class));
         verify(eventPublisher).publish(any(ChangeEventDto.class));
         verify(offsetRepository).save(deleteEvent.position());
     }
 
     @Test
     @DisplayName("Should throw exception when normalization fails")
-    void shouldThrowExceptionWhenNormalizationFails() {
+    void shouldThrowExceptionWhenNormalizationFails() throws Exception {
         // Given
         ChangeEvent event = createInsertEvent();
         when(dataNormalizer.normalize(any(), any(DatabaseType.class)))
@@ -128,12 +128,13 @@ class ProcessChangeEventUseCaseTest {
 
     @Test
     @DisplayName("Should throw exception when publishing fails")
-    void shouldThrowExceptionWhenPublishingFails() {
+    void shouldThrowExceptionWhenPublishingFails() throws Exception {
         // Given
         ChangeEvent event = createInsertEvent();
-        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(Map.of("key", "value"));
+        RowData normalizedData = new RowData(Map.of("key", "value"));
+        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(normalizedData);
         doThrow(new RuntimeException("Kafka unavailable"))
-                .when(eventPublisher).publish(any(ChangeEvent.class));
+                .when(eventPublisher).publish(any(ChangeEventDto.class));
 
         // When / Then
         assertThatThrownBy(() -> useCase.execute(event, DatabaseType.POSTGRESQL))
@@ -143,10 +144,11 @@ class ProcessChangeEventUseCaseTest {
 
     @Test
     @DisplayName("Should continue processing even if offset save fails")
-    void shouldContinueProcessingEvenIfOffsetSaveFails() {
+    void shouldContinueProcessingEvenIfOffsetSaveFails() throws Exception {
         // Given
         ChangeEvent event = createInsertEvent();
-        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(Map.of("key", "value"));
+        RowData normalizedData = new RowData(Map.of("key", "value"));
+        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(normalizedData);
         doThrow(new RuntimeException("Offset save failed"))
                 .when(offsetRepository).save(any());
 
@@ -159,7 +161,7 @@ class ProcessChangeEventUseCaseTest {
 
     @Test
     @DisplayName("Should process batch of events successfully")
-    void shouldProcessBatchSuccessfully() {
+    void shouldProcessBatchSuccessfully() throws Exception {
         // Given
         List<ChangeEvent> events = List.of(
                 createInsertEvent(),
@@ -167,7 +169,8 @@ class ProcessChangeEventUseCaseTest {
                 createDeleteEvent()
         );
 
-        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(Map.of("key", "value"));
+        RowData normalizedData = new RowData(Map.of("key", "value"));
+        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(normalizedData);
 
         // When
         ProcessChangeEventUseCase.ProcessingResult result = useCase.executeBatch(events, DatabaseType.POSTGRESQL);
@@ -178,12 +181,12 @@ class ProcessChangeEventUseCaseTest {
         assertThat(result.totalProcessed()).isEqualTo(3);
         assertThat(result.successRate()).isEqualTo(1.0);
 
-        verify(eventPublisher, times(3)).publish(any(ChangeEvent.class));
+        verify(eventPublisher, times(3)).publish(any(ChangeEventDto.class));
     }
 
     @Test
     @DisplayName("Should handle partial batch failures")
-    void shouldHandlePartialBatchFailures() {
+    void shouldHandlePartialBatchFailures() throws Exception {
         // Given
         List<ChangeEvent> events = List.of(
                 createInsertEvent(),
@@ -191,11 +194,12 @@ class ProcessChangeEventUseCaseTest {
                 createDeleteEvent()
         );
 
+        RowData normalizedData = new RowData(Map.of("key", "value"));
         // First event succeeds, second fails, third succeeds
         when(dataNormalizer.normalize(any(), any(DatabaseType.class)))
-                .thenReturn(Map.of("key", "value"))
+                .thenReturn(normalizedData)
                 .thenThrow(new RuntimeException("Normalization failed"))
-                .thenReturn(Map.of("key", "value"));
+                .thenReturn(normalizedData);
 
         // When
         ProcessChangeEventUseCase.ProcessingResult result = useCase.executeBatch(events, DatabaseType.POSTGRESQL);
@@ -206,12 +210,12 @@ class ProcessChangeEventUseCaseTest {
         assertThat(result.totalProcessed()).isEqualTo(3);
         assertThat(result.successRate()).isCloseTo(0.667, within(0.001));
 
-        verify(eventPublisher, times(2)).publish(any(ChangeEvent.class));
+        verify(eventPublisher, times(2)).publish(any(ChangeEventDto.class));
     }
 
     @Test
     @DisplayName("Should preserve event metadata during processing")
-    void shouldPreserveEventMetadata() {
+    void shouldPreserveEventMetadata() throws Exception {
         // Given
         Map<String, Object> metadata = Map.of(
                 "source", "debezium",
@@ -228,7 +232,8 @@ class ProcessChangeEventUseCaseTest {
                 metadata
         );
 
-        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(Map.of("order_id", 123));
+        RowData normalizedData = new RowData(Map.of("order_id", 123));
+        when(dataNormalizer.normalize(any(), any(DatabaseType.class))).thenReturn(normalizedData);
 
         // When
         useCase.execute(event, DatabaseType.POSTGRESQL);
@@ -237,7 +242,7 @@ class ProcessChangeEventUseCaseTest {
         ArgumentCaptor<ChangeEventDto> eventCaptor = ArgumentCaptor.forClass(ChangeEventDto.class);
         verify(eventPublisher).publish(eventCaptor.capture());
 
-        ChangeEvent publishedEvent = eventCaptor.getValue();
+        ChangeEventDto publishedEvent = eventCaptor.getValue();
         assertThat(publishedEvent.metadata()).isEqualTo(metadata);
     }
 

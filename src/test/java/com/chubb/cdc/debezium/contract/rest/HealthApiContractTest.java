@@ -1,6 +1,7 @@
 package com.chubb.cdc.debezium.contract.rest;
 
 import com.chubb.cdc.debezium.application.usecase.healthmonitoring.CheckHealthUseCase;
+import com.chubb.cdc.debezium.config.TestKafkaConfiguration;
 import com.chubb.cdc.debezium.domain.healthmonitoring.model.*;
 import com.chubb.cdc.debezium.presentation.rest.HealthController;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * without starting a full HTTP server.
  */
 @WebMvcTest(HealthController.class)
+@Import(TestKafkaConfiguration.class)
 @DisplayName("Health API Contract Tests")
 class HealthApiContractTest {
 
@@ -208,7 +211,7 @@ class HealthApiContractTest {
         Instant now = Instant.now();
 
         DatabaseHealthCheck dbHealth = new DatabaseHealthCheck(
-                
+                HealthState.UP,
                 "Connected to PostgreSQL at localhost:5432",
                 now,
                 Optional.of(Duration.ofMillis(45)),
@@ -216,7 +219,7 @@ class HealthApiContractTest {
         );
 
         KafkaHealthCheck kafkaHealth = new KafkaHealthCheck(
-                
+                HealthState.UP,
                 "Connected to 3 Kafka brokers",
                 now,
                 3,
@@ -224,7 +227,7 @@ class HealthApiContractTest {
         );
 
         CdcEngineHealthCheck engineHealth = new CdcEngineHealthCheck(
-                
+                HealthState.UP,
                 "Capturing changes from 5 tables",
                 now,
                 true,
@@ -233,7 +236,6 @@ class HealthApiContractTest {
         );
 
         return new HealthStatus(
-                
                 dbHealth,
                 kafkaHealth,
                 engineHealth,
@@ -245,7 +247,7 @@ class HealthApiContractTest {
         Instant now = Instant.now();
 
         DatabaseHealthCheck dbHealth = new DatabaseHealthCheck(
-                
+                HealthState.UP,
                 "Connected to PostgreSQL at localhost:5432",
                 now,
                 Optional.of(Duration.ofMillis(45)),
@@ -253,7 +255,7 @@ class HealthApiContractTest {
         );
 
         KafkaHealthCheck kafkaHealth = new KafkaHealthCheck(
-                
+                HealthState.DOWN,
                 "Failed to connect to Kafka",
                 now,
                 0,
@@ -261,7 +263,7 @@ class HealthApiContractTest {
         );
 
         CdcEngineHealthCheck engineHealth = new CdcEngineHealthCheck(
-                
+                HealthState.UP,
                 "Capturing changes from 5 tables",
                 now,
                 true,
@@ -270,7 +272,6 @@ class HealthApiContractTest {
         );
 
         return new HealthStatus(
-                
                 dbHealth,
                 kafkaHealth,
                 engineHealth,
@@ -282,7 +283,7 @@ class HealthApiContractTest {
         Instant now = Instant.now();
 
         DatabaseHealthCheck dbHealth = new DatabaseHealthCheck(
-                
+                HealthState.DOWN,
                 "Database connection failed",
                 now,
                 Optional.empty(),
@@ -290,7 +291,7 @@ class HealthApiContractTest {
         );
 
         KafkaHealthCheck kafkaHealth = new KafkaHealthCheck(
-                
+                HealthState.UP,
                 "Connected to 3 Kafka brokers",
                 now,
                 3,
@@ -298,7 +299,7 @@ class HealthApiContractTest {
         );
 
         CdcEngineHealthCheck engineHealth = new CdcEngineHealthCheck(
-                
+                HealthState.DOWN,
                 "Not capturing",
                 now,
                 false,
@@ -307,7 +308,6 @@ class HealthApiContractTest {
         );
 
         return new HealthStatus(
-                
                 dbHealth,
                 kafkaHealth,
                 engineHealth,
@@ -319,7 +319,7 @@ class HealthApiContractTest {
         Instant now = Instant.now();
 
         DatabaseHealthCheck dbHealth = new DatabaseHealthCheck(
-                
+                HealthState.UP,
                 "Connected to PostgreSQL at localhost:5432",
                 now,
                 Optional.of(Duration.ofMillis(45)),
@@ -327,7 +327,7 @@ class HealthApiContractTest {
         );
 
         KafkaHealthCheck kafkaHealth = new KafkaHealthCheck(
-                
+                HealthState.DOWN,
                 "Failed to connect to Kafka",
                 now,
                 0,
@@ -335,7 +335,7 @@ class HealthApiContractTest {
         );
 
         CdcEngineHealthCheck engineHealth = new CdcEngineHealthCheck(
-                
+                HealthState.DEGRADED,
                 "Capturing but cannot publish",
                 now,
                 true,
@@ -344,7 +344,6 @@ class HealthApiContractTest {
         );
 
         return new HealthStatus(
-                
                 dbHealth,
                 kafkaHealth,
                 engineHealth,

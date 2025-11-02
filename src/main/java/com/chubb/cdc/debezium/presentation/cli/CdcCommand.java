@@ -48,6 +48,9 @@ public class CdcCommand implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        // Debug: Log all received arguments
+        log.info("CdcCommand.run() called with {} arguments: {}", args.length, Arrays.toString(args));
+        
         // If no arguments, run as service (don't exit)
         if (args.length == 0) {
             log.info("CDC application starting in service mode");
@@ -56,6 +59,7 @@ public class CdcCommand implements CommandLineRunner {
 
         // Parse command
         String command = args[0].toLowerCase();
+        log.info("Parsed command: '{}'", command);
 
         try {
             switch (command) {
@@ -99,11 +103,15 @@ public class CdcCommand implements CommandLineRunner {
      * Handle 'start' command.
      */
     private void handleStart() {
+        log.info("handleStart() method called");
         System.out.println("Starting CDC capture...");
 
         try {
             // Load configuration
+            log.info("About to call loadConfigurationUseCase.execute()");
+            System.out.println("Environment CDC_CONFIG_PATH: " + System.getenv("CDC_CONFIG_PATH"));
             ConfigurationAggregate config = loadConfigurationUseCase.execute();
+            log.info("Configuration loaded successfully: {}", config);
             System.out.println("Configuration loaded: " + config.getTableConfigs().size() + " table(s) to monitor");
 
             // Start capture
@@ -116,7 +124,10 @@ public class CdcCommand implements CommandLineRunner {
             );
 
         } catch (Exception e) {
+            log.error("Exception in handleStart()", e);
             System.err.println("✗ Failed to start CDC capture: " + e.getMessage());
+            System.err.println("Full exception details:");
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

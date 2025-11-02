@@ -5,6 +5,11 @@ import com.chubb.cdc.debezium.application.dto.ChangeEventDto.CdcPositionDto;
 import com.chubb.cdc.debezium.application.dto.ChangeEventDto.TableIdentifierDto;
 import com.chubb.cdc.debezium.application.port.output.EventPublisher;
 import com.chubb.cdc.debezium.domain.changecapture.model.OperationType;
+import com.chubb.cdc.debezium.infrastructure.kafka.KafkaEventPublisher;
+import com.chubb.cdc.debezium.infrastructure.kafka.TopicNameResolver;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,15 +44,27 @@ class EventPublisherContractTest {
         // Mock KafkaTemplate for testing
         kafkaTemplate = mock(KafkaTemplate.class);
 
-        // Mock successful send
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(null);
+        // Mock successful send with proper SendResult
+        SendResult<String, String> sendResult = mock(SendResult.class);
+        ProducerRecord<String, String> producerRecord = mock(ProducerRecord.class);
+        RecordMetadata recordMetadata = new RecordMetadata(
+                new TopicPartition("test-topic", 0),
+                0L, // base offset
+                0, // batch index
+                0L, // timestamp
+                0L, // checksum (deprecated)
+                0, // serialized key size
+                0  // serialized value size
+        );
+
+        when(sendResult.getProducerRecord()).thenReturn(producerRecord);
+        when(sendResult.getRecordMetadata()).thenReturn(recordMetadata);
+
+        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(sendResult);
         when(kafkaTemplate.send(anyString(), anyString(), anyString())).thenReturn(future);
 
-        // This will fail until we create KafkaEventPublisher
-        // eventPublisher = new KafkaEventPublisher(kafkaTemplate, new TopicNameResolver("cdc.{database}.{table}"));
-
-        // TODO: Uncomment above line after implementation (T071, T072)
-        throw new UnsupportedOperationException("KafkaEventPublisher not yet implemented - this test should FAIL");
+        // Create the actual KafkaEventPublisher implementation
+        eventPublisher = new KafkaEventPublisher(kafkaTemplate, new TopicNameResolver("cdc.{database}.{table}"));
     }
 
     @Test
@@ -169,16 +186,21 @@ class EventPublisherContractTest {
     @DisplayName("Should handle Kafka publish failure")
     void shouldHandleKafkaPublishFailure() {
         // Given
+        // Reset the mock to return a failing future
+        reset(kafkaTemplate);
         CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
         future.completeExceptionally(new RuntimeException("Kafka unavailable"));
         when(kafkaTemplate.send(anyString(), anyString(), anyString())).thenReturn(future);
+
+        // Create a new event publisher with the reset mock
+        eventPublisher = new KafkaEventPublisher(kafkaTemplate, new TopicNameResolver("cdc.{database}.{table}"));
 
         ChangeEventDto event = createInsertEvent();
 
         // When/Then
         assertThatThrownBy(() -> eventPublisher.publishAsync(event).get(5, TimeUnit.SECONDS))
             .hasCauseInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Kafka unavailable");
+            .hasRootCauseMessage("Kafka unavailable");
     }
 
     @Test

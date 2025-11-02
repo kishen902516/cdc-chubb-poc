@@ -42,12 +42,12 @@ class LoadConfigurationUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new LoadConfigurationUseCase(configurationRepository, eventPublisher);
+        useCase = new LoadConfigurationUseCase(configurationRepository, domainEventPublisher);
     }
 
     @Test
     @DisplayName("Should load configuration successfully and publish event")
-    void shouldLoadConfigurationSuccessfully() {
+    void shouldLoadConfigurationSuccessfully() throws Exception {
         // Given
         ConfigurationAggregate config = createValidConfiguration();
         when(configurationRepository.load()).thenReturn(config);
@@ -61,8 +61,8 @@ class LoadConfigurationUseCaseTest {
         assertThat(result.getDatabaseConfig().getType()).isEqualTo(DatabaseType.POSTGRESQL);
 
         // Verify event published
-        ArgumentCaptor<Object> eventCaptor =
-                ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<ConfigurationLoadedEvent> eventCaptor =
+                ArgumentCaptor.forClass(ConfigurationLoadedEvent.class);
         verify(domainEventPublisher).publish(eventCaptor.capture());
 
         ConfigurationLoadedEvent event = eventCaptor.getValue();
@@ -73,7 +73,7 @@ class LoadConfigurationUseCaseTest {
 
     @Test
     @DisplayName("Should throw exception when repository fails to load")
-    void shouldThrowExceptionWhenRepositoryFails() {
+    void shouldThrowExceptionWhenRepositoryFails() throws Exception {
         // Given
         when(configurationRepository.load())
                 .thenThrow(new RuntimeException("File not found"));
@@ -85,12 +85,12 @@ class LoadConfigurationUseCaseTest {
                 .hasCauseInstanceOf(RuntimeException.class);
 
         // Verify no event published on failure
-        verify(eventPublisher, never()).publish(any());
+        verify(domainEventPublisher, never()).publish(any());
     }
 
     @Test
     @DisplayName("Should throw exception when configuration is invalid")
-    void shouldThrowExceptionWhenConfigurationIsInvalid() {
+    void shouldThrowExceptionWhenConfigurationIsInvalid() throws Exception {
         // Given
         ConfigurationAggregate invalidConfig = createInvalidConfiguration();
         when(configurationRepository.load()).thenReturn(invalidConfig);
@@ -100,7 +100,7 @@ class LoadConfigurationUseCaseTest {
                 .isInstanceOf(LoadConfigurationUseCase.ConfigurationLoadException.class);
 
         // Verify no event published on validation failure
-        verify(eventPublisher, never()).publish(any());
+        verify(domainEventPublisher, never()).publish(any());
     }
 
     @Test
@@ -124,7 +124,7 @@ class LoadConfigurationUseCaseTest {
 
     @Test
     @DisplayName("Should handle event publisher failures gracefully")
-    void shouldHandleEventPublisherFailures() {
+    void shouldHandleEventPublisherFailures() throws Exception {
         // Given
         ConfigurationAggregate config = createValidConfiguration();
         when(configurationRepository.load()).thenReturn(config);
@@ -140,7 +140,7 @@ class LoadConfigurationUseCaseTest {
 
     @Test
     @DisplayName("Should load configuration with minimal valid setup")
-    void shouldLoadConfigurationWithMinimalSetup() {
+    void shouldLoadConfigurationWithMinimalSetup() throws Exception {
         // Given
         ConfigurationAggregate minimalConfig = createMinimalConfiguration();
         when(configurationRepository.load()).thenReturn(minimalConfig);
