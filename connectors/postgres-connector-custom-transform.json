@@ -1,0 +1,32 @@
+{
+  "name": "postgres-cdc-connector-custom",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "cdcuser",
+    "database.password": "cdcpassword",
+    "database.dbname": "cdcdb",
+    "topic.prefix": "postgres-custom",
+    "table.include.list": "public.orders,public.customers",
+    "plugin.name": "pgoutput",
+    "slot.name": "debezium_slot_custom",
+    "publication.name": "debezium_publication_custom",
+    "database.history.kafka.bootstrap.servers": "kafka:29092",
+    "database.history.kafka.topic": "schema-changes.postgres-custom",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "snapshot.mode": "initial",
+    "heartbeat.interval.ms": "10000",
+    "tombstones.on.delete": "false",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "adaptive",
+    "transforms": "customFormat",
+    "transforms.customFormat.type": "com.example.kafka.transforms.DebeziumCustomTransform",
+    "transforms.customFormat.metadata.version": "1.0.0",
+    "transforms.customFormat.metadata.source": "debezium-cdc-app"
+  }
+}

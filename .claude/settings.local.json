@@ -5,7 +5,9 @@
       "Bash(cdc_startup.log)",
       "Bash(cat:*)",
       "Bash(java -Dlogging.level.root=DEBUG -Dlogging.level.org.springframework=DEBUG -jar target/debezium-cdc-app-1.0.0-SNAPSHOT.jar:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(nul)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

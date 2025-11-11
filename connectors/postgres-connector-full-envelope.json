@@ -1,0 +1,32 @@
+{
+  "name": "postgres-cdc-connector-full",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "cdcuser",
+    "database.password": "cdcpassword",
+    "database.dbname": "cdcdb",
+    "topic.prefix": "postgres-full",
+    "table.include.list": "public.orders,public.customers",
+    "plugin.name": "pgoutput",
+    "slot.name": "debezium_slot_full",
+    "publication.name": "debezium_publication_full",
+    "database.history.kafka.bootstrap.servers": "kafka:29092",
+    "database.history.kafka.topic": "schema-changes.postgres-full",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "snapshot.mode": "initial",
+    "heartbeat.interval.ms": "10000",
+    "tombstones.on.delete": "false",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "adaptive",
+    "transforms": "route",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.route.regex": "([^.]+)\\.([^.]+)\\.([^.]+)",
+    "transforms.route.replacement": "cdc-full.$3"
+  }
+}
