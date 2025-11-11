@@ -153,7 +153,7 @@ public class SqlServerCdcIntegrationTest {
         // Then: Should capture INSERT event within 5 seconds
         ChangeEvent event = capturedEvents.poll(5, TimeUnit.SECONDS);
         assertThat(event).isNotNull();
-        assertThat(event.operationType()).isEqualTo(OperationType.INSERT);
+        assertThat(event.operation()).isEqualTo(OperationType.INSERT);
         assertThat(event.table().table()).isEqualTo("orders");
         assertThat(event.after().fields().get("customer_id")).isEqualTo(123);
         assertThat(event.after().fields().get("status")).isEqualTo("PENDING");
@@ -184,7 +184,7 @@ public class SqlServerCdcIntegrationTest {
         // Then: Should capture UPDATE event within 5 seconds
         ChangeEvent event = capturedEvents.poll(5, TimeUnit.SECONDS);
         assertThat(event).isNotNull();
-        assertThat(event.operationType()).isEqualTo(OperationType.UPDATE);
+        assertThat(event.operation()).isEqualTo(OperationType.UPDATE);
         assertThat(event.before().fields().get("status")).isEqualTo("PENDING");
         assertThat(event.after().fields().get("status")).isEqualTo("COMPLETED");
     }
@@ -213,7 +213,7 @@ public class SqlServerCdcIntegrationTest {
         // Then: Should capture DELETE event within 5 seconds
         ChangeEvent event = capturedEvents.poll(5, TimeUnit.SECONDS);
         assertThat(event).isNotNull();
-        assertThat(event.operationType()).isEqualTo(OperationType.DELETE);
+        assertThat(event.operation()).isEqualTo(OperationType.DELETE);
         assertThat(event.before().fields().get("customer_id")).isEqualTo(789);
         assertThat(event.before().fields().get("status")).isEqualTo("CANCELLED");
         assertThat(event.after()).isNull();
