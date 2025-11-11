@@ -175,9 +175,9 @@ public class SqlServerConnectorStrategy implements ConnectorStrategy {
                 // Set truststore for CA certificate validation
                 sslConfig.caCertPath().ifPresent(path -> {
                     props.setProperty("database.trustStore", path);
-                    sslConfig.truststorePassword().ifPresent(password ->
-                        props.setProperty("database.trustStorePassword", password)
-                    );
+                    // Note: Truststore password should be provided via JVM system property:
+                    // -Djavax.net.ssl.trustStorePassword=password
+                    // Or configured in additionalProperties if needed
                 });
                 break;
         }
