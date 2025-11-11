@@ -44,3 +44,19 @@ springdoc:
     enabled: true
     operations-sorter: alpha
     tags-sorter: alpha
+
+# CDC Configuration
+cdc:
+  config:
+    path: config/cdc-config.yml
+  offset:
+    storage:
+      path: data/offset.dat
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 10
+      compression-type: snappy

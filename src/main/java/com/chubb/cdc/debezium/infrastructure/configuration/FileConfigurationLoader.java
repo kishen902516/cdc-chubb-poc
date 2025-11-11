@@ -42,7 +42,7 @@ public class FileConfigurationLoader implements ConfigurationRepository {
 
     private static final String DEFAULT_CONFIG_PATH = "config/cdc-config.yml";
     private static final Pattern HOST_PORT_PATTERN = Pattern.compile("^[a-zA-Z0-9.-]+:\\d+$");
-    private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+$|^[a-zA-Z0-9_]+$");
+    private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+$|^[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+$|^[a-zA-Z0-9_]+$");
 
     private final String configPath;
     private final ObjectMapper yamlMapper;
@@ -139,7 +139,7 @@ public class FileConfigurationLoader implements ConfigurationRepository {
         if (tablesConfig == null || tablesConfig.isEmpty()) {
             throw new ConfigurationLoadException("Missing 'tables' section in configuration");
         }
-        Set<TableConfig> tableConfigs = parseTableConfigs(tablesConfig, databaseConfig.getType());
+        Set<TableConfig> tableConfigs = parseTableConfigs(tablesConfig, databaseConfig.getType(), databaseConfig.getDatabase());
 
         // Parse Kafka configuration
         Map<String, Object> kafkaConfigMap = (Map<String, Object>) yamlData.get("kafka");
@@ -260,7 +260,7 @@ public class FileConfigurationLoader implements ConfigurationRepository {
      * Parses table configurations from YAML list.
      */
     @SuppressWarnings("unchecked")
-    private Set<TableConfig> parseTableConfigs(List<Map<String, Object>> tablesConfig, DatabaseType dbType)
+    private Set<TableConfig> parseTableConfigs(List<Map<String, Object>> tablesConfig, DatabaseType dbType, String databaseName)
         throws ConfigurationLoadException {
 
         Set<TableConfig> configs = new HashSet<>();
@@ -272,7 +272,7 @@ public class FileConfigurationLoader implements ConfigurationRepository {
             }
 
             // Parse table identifier based on database type
-            TableIdentifier tableId = parseTableIdentifier(tableName, dbType);
+            TableIdentifier tableId = parseTableIdentifier(tableName, dbType, databaseName);
 
             // Parse include mode
             String includeModeStr = (String) tableConfig.get("includeMode");
@@ -305,25 +305,25 @@ public class FileConfigurationLoader implements ConfigurationRepository {
     /**
      * Parses table identifier from table name string.
      */
-    private TableIdentifier parseTableIdentifier(String tableName, DatabaseType dbType) {
+    private TableIdentifier parseTableIdentifier(String tableName, DatabaseType dbType, String databaseName) {
         String[] parts = tableName.split("\\.");
 
         if (dbType == DatabaseType.MYSQL) {
             // MySQL doesn't use schemas in the same way
             if (parts.length == 1) {
-                return new TableIdentifier(null, null, parts[0]);
+                return new TableIdentifier(databaseName, null, parts[0]);
             } else if (parts.length == 2) {
-                // database.table format
+                // database.table format - use first part as database override
                 return new TableIdentifier(parts[0], null, parts[1]);
             }
         } else {
             // PostgreSQL, SQL Server, Oracle use schema.table format
             if (parts.length == 2) {
                 // schema.table
-                return new TableIdentifier(null, parts[0], parts[1]);
+                return new TableIdentifier(databaseName, parts[0], parts[1]);
             } else if (parts.length == 1) {
                 // Just table name, use default schema
-                return new TableIdentifier(null, "public", parts[0]);
+                return new TableIdentifier(databaseName, "public", parts[0]);
             }
         }
 

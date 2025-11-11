@@ -4,8 +4,6 @@ import com.chubb.cdc.debezium.domain.changecapture.model.CdcPosition;
 import com.chubb.cdc.debezium.domain.changecapture.repository.OffsetRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
@@ -18,7 +16,6 @@ import java.util.Optional;
  *
  * Design Pattern: Adapter - Adapts FileOffsetStore to the domain's OffsetRepository interface
  */
-@Repository
 public class OffsetRepositoryAdapter implements OffsetRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(OffsetRepositoryAdapter.class);
@@ -28,11 +25,9 @@ public class OffsetRepositoryAdapter implements OffsetRepository {
     /**
      * Creates an OffsetRepositoryAdapter with the specified offset file path.
      *
-     * @param offsetFilePath Path to the offset storage file (injected from application.yml)
+     * @param offsetFilePath Path to the offset storage file
      */
-    public OffsetRepositoryAdapter(
-        @Value("${cdc.offset.storage.file.path:data/offsets/cdc-offsets.dat}") String offsetFilePath
-    ) {
+    public OffsetRepositoryAdapter(String offsetFilePath) {
         this.fileOffsetStore = new FileOffsetStore(offsetFilePath);
         logger.info("OffsetRepositoryAdapter initialized with file path: {}", offsetFilePath);
     }

@@ -167,7 +167,7 @@ public class DebeziumEngineAdapter implements CdcEngine {
                     CaptureStartedEvent event = new CaptureStartedEvent(
                         Instant.now(),
                         tableConfig.table(),
-                        new CdcPosition("initial", Map.of())
+                        new CdcPosition("initial", Map.of("offset", 0L, "timestamp", System.currentTimeMillis()))
                     );
                     // In a full implementation, this would be published via a domain event bus
                     logger.debug("Capture started for table: {}", tableConfig.table().fullyQualifiedName());
@@ -342,14 +342,23 @@ public class DebeziumEngineAdapter implements CdcEngine {
             Map<String, ?> sourcePartition = sourceRecord.sourcePartition();
             Map<String, ?> sourceOffset = sourceRecord.sourceOffset();
 
-            String partitionKey = sourcePartition.toString();
-            CdcPosition position = new CdcPosition(partitionKey, Map.copyOf(sourceOffset));
+            String partitionKey = sourcePartition != null ? sourcePartition.toString() : "unknown";
+            // Filter out null values from sourceOffset since Map.copyOf() doesn't allow nulls
+            Map<String, ?> offsetMap = sourceOffset != null ?
+                sourceOffset.entrySet().stream()
+                    .filter(e -> e.getValue() != null)
+                    .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                    )) : Map.of();
+            CdcPosition position = new CdcPosition(partitionKey, Map.copyOf(offsetMap));
 
             // Metadata
+            String connectorName = source.getString("connector");
             Map<String, Object> metadata = Map.of(
                 "source", "debezium-cdc-app",
                 "version", "1.0.0",
-                "connector", source.getString("connector"),
+                "connector", connectorName != null ? connectorName : "unknown",
                 "schemaVersion", 1
             );
 

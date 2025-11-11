@@ -1,0 +1,65 @@
+# Debezium CDC Application Configuration
+# This is a sample configuration for local development with PostgreSQL
+
+# Source Database Configuration
+database:
+  type: POSTGRESQL
+  host: localhost
+  port: 5432
+  database: cdcdb
+  username: cdcuser
+  # Password should be provided via environment variable: DB_PASSWORD
+  password: cdcpassword
+
+  # Optional SSL Configuration
+  # ssl:
+  #   enabled: true
+  #   mode: VERIFY_CA
+  #   caCertPath: /path/to/ca.crt
+  #   clientCertPath: /path/to/client.crt
+  #   clientKeyPath: /path/to/client.key
+
+# Tables to Monitor
+tables:
+  # Orders table - include all columns
+  - name: public.orders
+    includeMode: INCLUDE_ALL
+    # columnFilter: []  # Empty means all columns
+    # compositeKey:     # Only needed for tables without primary key
+    #   columns:
+    #     - column1
+    #     - column2
+
+  # Customers table - exclude sensitive columns
+  - name: public.customers
+    includeMode: EXCLUDE_SPECIFIED
+    columnFilter:
+      - password_hash
+      - ssn
+      - credit_card
+
+# Kafka Configuration
+kafka:
+  brokers:
+    - localhost:9092
+
+  # Topic naming pattern
+  # Placeholders: {database}, {schema}, {table}
+  topicPattern: "cdc.{database}.{table}"
+
+  # Optional Kafka Security Configuration
+  # security:
+  #   protocol: SASL_SSL
+  #   mechanism: SCRAM-SHA-256
+  #   username: kafka-user
+  #   password: ${KAFKA_PASSWORD}
+  #   truststore:
+  #     path: /path/to/truststore.jks
+  #     password: ${TRUSTSTORE_PASSWORD}
+
+  # Additional Kafka producer properties
+  producerProperties:
+    acks: "all"
+    compression.type: "snappy"
+    max.in.flight.requests.per.connection: 1
+    enable.idempotence: true

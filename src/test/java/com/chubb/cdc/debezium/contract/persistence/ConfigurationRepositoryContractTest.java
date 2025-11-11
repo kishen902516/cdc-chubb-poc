@@ -4,6 +4,7 @@ import com.chubb.cdc.debezium.domain.configuration.model.*;
 import com.chubb.cdc.debezium.domain.configuration.model.SslConfig.SslMode;
 import com.chubb.cdc.debezium.domain.configuration.repository.ConfigurationRepository;
 import com.chubb.cdc.debezium.domain.configuration.repository.ConfigurationRepository.ConfigurationLoadException;
+import com.chubb.cdc.debezium.infrastructure.configuration.FileConfigurationLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,11 +62,8 @@ class ConfigurationRepositoryContractTest {
 
         Files.writeString(configFilePath, validConfig);
 
-        // This will fail until we create FileConfigurationLoader
-        // configurationRepository = new FileConfigurationLoader(configFilePath.toString());
-
-        // TODO: Uncomment above line after implementation (T066, T067)
-        throw new UnsupportedOperationException("FileConfigurationLoader not yet implemented - this test should FAIL");
+        // Create the actual FileConfigurationLoader implementation
+        configurationRepository = new FileConfigurationLoader(configFilePath.toString());
     }
 
     @Test

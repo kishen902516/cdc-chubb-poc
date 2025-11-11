@@ -18,8 +18,8 @@ public record RowData(
     public RowData {
         Objects.requireNonNull(fields, "Fields cannot be null");
 
-        // Make fields immutable
-        fields = Map.copyOf(fields);
+        // Make fields immutable - use HashMap constructor since Map.copyOf() doesn't allow null values
+        fields = java.util.Collections.unmodifiableMap(new java.util.HashMap<>(fields));
     }
 
     /**

@@ -62,8 +62,11 @@ public class ConnectorFactory {
         // MySQL strategy would be registered here when implemented
         // strategies.put(DatabaseType.MYSQL, new MysqlConnectorStrategy());
 
-        // SQL Server and Oracle strategies would be added later
-        // strategies.put(DatabaseType.SQLSERVER, new SqlServerConnectorStrategy());
+
+        // SQL Server strategy
+        strategies.put(DatabaseType.SQLSERVER, new SqlServerConnectorStrategy());
+
+        // Oracle strategy would be added later
         // strategies.put(DatabaseType.ORACLE, new OracleConnectorStrategy());
     }
 

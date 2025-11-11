@@ -2,6 +2,7 @@ package com.chubb.cdc.debezium.contract.persistence;
 
 import com.chubb.cdc.debezium.domain.changecapture.model.CdcPosition;
 import com.chubb.cdc.debezium.domain.changecapture.repository.OffsetRepository;
+import com.chubb.cdc.debezium.infrastructure.persistence.offset.OffsetRepositoryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,11 +32,8 @@ class OffsetRepositoryContractTest {
 
     @BeforeEach
     void setUp() {
-        // This will fail until we create the FileOffsetStore and OffsetRepositoryAdapter
-        // offsetRepository = new OffsetRepositoryAdapter(new FileOffsetStore(tempDir.toString()));
-
-        // TODO: Uncomment above line after implementation (T064, T065)
-        throw new UnsupportedOperationException("OffsetRepositoryAdapter not yet implemented - this test should FAIL");
+        // Create the actual OffsetRepositoryAdapter with file path
+        offsetRepository = new OffsetRepositoryAdapter(tempDir.resolve("offsets.dat").toString());
     }
 
     @Test

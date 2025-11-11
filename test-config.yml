@@ -1,0 +1,16 @@
+database:
+  type: POSTGRESQL
+  host: localhost
+  port: 5432
+  database: testdb
+  username: testuser
+  password: testpass
+
+tables:
+  - name: public.test_table
+    includeMode: INCLUDE_ALL
+
+kafka:
+  brokers:
+    - localhost:9092
+  topicPattern: "test.{database}.{table}"
