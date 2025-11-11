@@ -1,0 +1,85 @@
+# Debezium CDC Application Configuration
+# Sample configuration for SQL Server CDC
+
+# Source Database Configuration
+database:
+  type: SQLSERVER
+  host: localhost
+  port: 1433
+  database: cdcdb
+  username: sa
+  # Password should be provided via environment variable: DB_PASSWORD
+  # For Docker local development, use: SqlServer2022!
+  # password: ${DB_PASSWORD:SqlServer2022!}
+
+  # Optional SSL Configuration
+  # ssl:
+  #   enabled: true
+  #   mode: VERIFY_CA
+  #   truststore: /path/to/truststore.jks
+  #   truststorePassword: ${TRUSTSTORE_PASSWORD}
+
+# Tables to Monitor
+# Note: SQL Server requires CDC to be enabled at database and table level
+# Run these commands first:
+# EXEC sys.sp_cdc_enable_db
+# EXEC sys.sp_cdc_enable_table @source_schema = N'dbo', @source_name = N'<table_name>', @role_name = NULL
+tables:
+  # Orders table - include all columns
+  - name: dbo.orders
+    includeMode: INCLUDE_ALL
+    # columnFilter: []  # Empty means all columns
+    # compositeKey:     # Only needed for tables without primary key
+    #   columns:
+    #     - column1
+    #     - column2
+
+  # Customers table - exclude sensitive columns
+  - name: dbo.customers
+    includeMode: EXCLUDE_SPECIFIED
+    columnFilter:
+      - password_hash
+      - ssn
+      - credit_card
+
+  # Products table - example with composite key
+  # - name: dbo.products
+  #   includeMode: INCLUDE_ALL
+  #   compositeKey:
+  #     columns:
+  #       - category_id
+  #       - product_code
+
+# Kafka Configuration
+kafka:
+  brokers:
+    - localhost:9092
+
+  # Topic naming pattern
+  # Placeholders: {database}, {schema}, {table}
+  topicPattern: "cdc.sqlserver.{database}.{schema}.{table}"
+
+  # Optional Kafka Security Configuration
+  # security:
+  #   protocol: SASL_SSL
+  #   mechanism: SCRAM-SHA-256
+  #   username: kafka-user
+  #   password: ${KAFKA_PASSWORD}
+  #   truststore:
+  #     path: /path/to/truststore.jks
+  #     password: ${TRUSTSTORE_PASSWORD}
+
+  # Additional Kafka producer properties
+  producerProperties:
+    acks: "all"
+    compression.type: "snappy"
+    max.in.flight.requests.per.connection: 1
+    enable.idempotence: true
+
+# Additional SQL Server specific properties
+# Can be added to database configuration as needed:
+# database:
+#   additionalProperties:
+#     database.server.timezone: "UTC"
+#     decimal.handling.mode: "precise"
+#     time.precision.mode: "adaptive"

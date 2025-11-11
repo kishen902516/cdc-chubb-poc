@@ -623,3 +623,46 @@ T070, T072, T076 → T079, T080, T081 (Use cases need adapters)
 - **US4**: Cross-database normalization + schema change handling
 
 **Suggested MVP Scope**: User Story 1 only (Setup + Foundational + US1 = 93 tasks, ~10 days)
+
+
+---
+
+## Additional Implementation: SQL Server Support
+
+**Implemented**: 2025-11-11
+
+In addition to the planned MySQL support, SQL Server (MSSQL) connector has been implemented:
+
+### Completed SQL Server Tasks
+
+- [X] Added SQL Server dependencies to pom.xml (debezium-connector-sqlserver, mssql-jdbc, testcontainers-mssqlserver)
+- [X] Created SqlServerConnectorStrategy in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/SqlServerConnectorStrategy.java
+- [X] Updated ConnectorFactory to register SQL Server strategy
+- [X] Created SQL Server integration test in src/test/java/com/chubb/cdc/debezium/integration/SqlServerCdcIntegrationTest.java
+- [X] Added SQL Server service to docker-compose.yml
+- [X] Created sample configuration in src/main/resources/cdc-config-sqlserver.yml
+- [X] Created CDC setup script in scripts/setup-sqlserver-cdc.sql
+- [X] Created comprehensive documentation in connectors/MSSQL_CONNECTOR_README.md
+
+### SQL Server Connector Features
+
+- Full support for SQL Server 2016+ (tested with 2022)
+- CDC enablement at database and table levels
+- SSL/TLS support for secure connections
+- Data type normalization (DATETIME2 → ISO-8601, NVARCHAR → UTF-8)
+- Composite key support for tables without primary keys
+- Schema change detection and handling
+- Integration with existing Kafka publishing pipeline
+
+### Testing SQL Server Connector
+
+```bash
+# Start SQL Server in Docker
+docker-compose up -d sqlserver
+
+# Run setup script
+docker exec -i cdc-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "SqlServer2022!" -i /scripts/setup-sqlserver-cdc.sql
+
+# Run integration tests
+mvn test -Dtest=SqlServerCdcIntegrationTest
+```

@@ -28,6 +28,25 @@ services:
       - "-c"
       - "max_replication_slots=10"
 
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cdc-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "SqlServer2022!"
+      MSSQL_PID: "Developer"
+      MSSQL_AGENT_ENABLED: "true"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "SqlServer2022!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Zookeeper (required for Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -112,12 +131,14 @@ services:
         echo "Installing Debezium connectors..."
         confluent-hub install --no-prompt debezium/debezium-connector-postgresql:2.5.4
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:2.5.4
+        confluent-hub install --no-prompt debezium/debezium-connector-sqlserver:2.5.4
         /etc/confluent/docker/run
     networks:
       - cdc-network
 
 volumes:
   postgres-data:
+  sqlserver-data:
   zookeeper-data:
   zookeeper-logs:
   kafka-data:

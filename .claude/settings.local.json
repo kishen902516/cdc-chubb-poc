@@ -7,7 +7,11 @@
       "Bash(java -Dlogging.level.root=DEBUG -Dlogging.level.org.springframework=DEBUG -jar target/debezium-cdc-app-1.0.0-SNAPSHOT.jar:*)",
       "Bash(docker ps:*)",
       "Bash(nul)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(echo \"\n\n---\n\n## Additional Implementation: SQL Server Support\n\n**Implemented**: 2025-11-11\n\nIn addition to the planned MySQL support, SQL Server (MSSQL) connector has been implemented:\n\n### Completed SQL Server Tasks\n\n- [X] Added SQL Server dependencies to pom.xml (debezium-connector-sqlserver, mssql-jdbc, testcontainers-mssqlserver)\n- [X] Created SqlServerConnectorStrategy in src/main/java/com/chubb/cdc/debezium/infrastructure/debezium/SqlServerConnectorStrategy.java\n- [X] Updated ConnectorFactory to register SQL Server strategy\n- [X] Created SQL Server integration test in src/test/java/com/chubb/cdc/debezium/integration/SqlServerCdcIntegrationTest.java\n- [X] Added SQL Server service to docker-compose.yml\n- [X] Created sample configuration in src/main/resources/cdc-config-sqlserver.yml\n- [X] Created CDC setup script in scripts/setup-sqlserver-cdc.sql\n- [X] Created comprehensive documentation in connectors/MSSQL_CONNECTOR_README.md\n\n### SQL Server Connector Features\n\n- Full support for SQL Server 2016+ (tested with 2022)\n- CDC enablement at database and table levels\n- SSL/TLS support for secure connections\n- Data type normalization (DATETIME2 → ISO-8601, NVARCHAR → UTF-8)\n- Composite key support for tables without primary keys\n- Schema change detection and handling\n- Integration with existing Kafka publishing pipeline\n\n### Testing SQL Server Connector\n\n\\`\\`\\`bash\n# Start SQL Server in Docker\ndocker-compose up -d sqlserver\n\n# Run setup script\ndocker exec -i cdc-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"\"SqlServer2022!\"\" -i /scripts/setup-sqlserver-cdc.sql\n\n# Run integration tests\nmvn test -Dtest=SqlServerCdcIntegrationTest\n\\`\\`\\`\")",
+      "Bash(specs/001-debezium-cdc-app/tasks.md)"
     ],
     "deny": [],
     "ask": []
